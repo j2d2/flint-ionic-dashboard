@@ -1,0 +1,11 @@
+pre {
+  margin: 0;
+  font-family: Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+  font-size: 0.8rem;
+  white-space: pre-wrap;
+}
+
+.log-box {
+  --background: var(--ion-color-light);
+  border-radius: 12px;
+}

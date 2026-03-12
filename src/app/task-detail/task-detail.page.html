@@ -1,0 +1,46 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/dashboard"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Task Detail</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding" *ngIf="task() as currentTask; else notFound">
+  <ion-card>
+    <ion-card-header>
+      <ion-card-subtitle>{{ currentTask.agentType }} · {{ currentTask.model }}</ion-card-subtitle>
+      <ion-card-title>{{ currentTask.name }}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-badge [color]="statusColor(currentTask.status)">{{ currentTask.status }}</ion-badge>
+
+      <ion-grid class="ion-margin-top">
+        <ion-row>
+          <ion-col size="6"><strong>Last Run</strong></ion-col>
+          <ion-col size="6">{{ formatRunTime(currentTask.lastRun) }}</ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col size="6"><strong>Next Run</strong></ion-col>
+          <ion-col size="6">{{ formatRunTime(currentTask.nextRun) }}</ion-col>
+        </ion-row>
+      </ion-grid>
+
+      <ion-item lines="none" class="log-box ion-margin-top">
+        <ion-label>
+          <h3>Log Stream</h3>
+          <pre>{{ currentTask.logs.join('\n') }}</pre>
+        </ion-label>
+      </ion-item>
+
+      <ion-button expand="block" class="ion-margin-top" (click)="startNewThread()">Start New Thread</ion-button>
+    </ion-card-content>
+  </ion-card>
+</ion-content>
+
+<ng-template #notFound>
+  <ion-content class="ion-padding">
+    <ion-text color="medium">Task not found.</ion-text>
+  </ion-content>
+</ng-template>

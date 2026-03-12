@@ -1,0 +1,34 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Agent Dashboard</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="openNewThread()">New Thread</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="loadTasks($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <ion-list>
+    <ion-item button detail="true" *ngFor="let task of tasks()" (click)="openTask(task.id)">
+      <ion-label>
+        <h2>{{ task.name }}</h2>
+        <p>{{ task.agentType }} · {{ task.model }}</p>
+      </ion-label>
+      <ion-badge slot="end" [color]="statusColor(task.status)">{{ task.status }}</ion-badge>
+      <ion-note slot="end" class="ion-padding-start">{{ formatRunTime(task.lastRun) }}</ion-note>
+    </ion-item>
+  </ion-list>
+
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button color="primary" (click)="openNewThread()">
+      <ion-icon name="add-circle-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

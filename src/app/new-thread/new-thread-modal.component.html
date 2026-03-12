@@ -1,0 +1,33 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Start New Thread</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()">Close</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-item>
+    <ion-label position="stacked">Prompt</ion-label>
+    <ion-textarea
+      [(ngModel)]="prompt"
+      placeholder="What should this agent do?"
+      auto-grow="true"
+      rows="6"
+    ></ion-textarea>
+  </ion-item>
+
+  <ion-item>
+    <ion-label>Agent Type</ion-label>
+    <ion-select [(ngModel)]="agentType" interface="popover">
+      <ion-select-option *ngFor="let type of agentTypes" [value]="type.value">
+        {{ type.label }}
+      </ion-select-option>
+    </ion-select>
+  </ion-item>
+
+  <ion-button expand="block" class="ion-margin-top" [disabled]="isSubmitting() || !prompt.trim()" (click)="submit()">
+    {{ isSubmitting() ? 'Starting...' : 'Start Thread' }}
+  </ion-button>
+</ion-content>

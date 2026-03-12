@@ -1,0 +1,7 @@
+{
+  "name": "flint-ionic-dashboard-scaffold",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
