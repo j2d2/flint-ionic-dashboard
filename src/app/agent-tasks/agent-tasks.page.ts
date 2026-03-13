@@ -40,7 +40,11 @@ export class AgentTasksPage implements OnInit, OnDestroy {
         (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
       );
     }
-    return list;
+    // Default: ascending priority (P1 first), then newest-updated as tiebreaker
+    return [...list].sort(
+      (a, b) => a.priority - b.priority ||
+        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+    );
   });
 
   readonly statusColor = statusColor;

@@ -9,12 +9,14 @@
 
       <ion-content>
         <ion-list>
-          <ion-menu-toggle autoHide="false" *ngFor="let item of appPages">
-            <ion-item [routerLink]="item.url" routerDirection="root" lines="full">
-              <ion-icon slot="start" [name]="item.icon"></ion-icon>
-              <ion-label>{{ item.title }}</ion-label>
-            </ion-item>
-          </ion-menu-toggle>
+          @for (item of appPages; track item.url) {
+            <ion-menu-toggle autoHide="false">
+              <ion-item [routerLink]="item.url" routerDirection="root" lines="full">
+                <ion-icon slot="start" [name]="item.icon"></ion-icon>
+                <ion-label>{{ item.title }}</ion-label>
+              </ion-item>
+            </ion-menu-toggle>
+          }
         </ion-list>
       </ion-content>
     </ion-menu>
