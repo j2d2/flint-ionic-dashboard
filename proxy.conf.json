@@ -1,0 +1,13 @@
+{
+  "/api": {
+    "target": "http://localhost:18310",
+    "secure": false,
+    "logLevel": "warn"
+  },
+  "/socket.io": {
+    "target": "http://localhost:18310",
+    "secure": false,
+    "ws": true,
+    "logLevel": "warn"
+  }
+}

@@ -10,31 +10,48 @@
 <ion-content class="ion-padding" *ngIf="task() as currentTask; else notFound">
   <ion-card>
     <ion-card-header>
-      <ion-card-subtitle>{{ currentTask.agentType }} · {{ currentTask.model }}</ion-card-subtitle>
-      <ion-card-title>{{ currentTask.name }}</ion-card-title>
+      <ion-card-subtitle>{{ currentTask.task_type }} &middot; {{ currentTask.model ?? '&mdash;' }}</ion-card-subtitle>
+      <ion-card-title>{{ currentTask.title }}</ion-card-title>
     </ion-card-header>
     <ion-card-content>
       <ion-badge [color]="statusColor(currentTask.status)">{{ currentTask.status }}</ion-badge>
 
       <ion-grid class="ion-margin-top">
         <ion-row>
-          <ion-col size="6"><strong>Last Run</strong></ion-col>
-          <ion-col size="6">{{ formatRunTime(currentTask.lastRun) }}</ion-col>
+          <ion-col size="6"><strong>Created</strong></ion-col>
+          <ion-col size="6">{{ formatDate(currentTask.created_at) }}</ion-col>
         </ion-row>
         <ion-row>
-          <ion-col size="6"><strong>Next Run</strong></ion-col>
-          <ion-col size="6">{{ formatRunTime(currentTask.nextRun) }}</ion-col>
+          <ion-col size="6"><strong>Updated</strong></ion-col>
+          <ion-col size="6">{{ formatDate(currentTask.updated_at) }}</ion-col>
+        </ion-row>
+        <ion-row *ngIf="currentTask.vault_note">
+          <ion-col size="6"><strong>Vault Note</strong></ion-col>
+          <ion-col size="6">{{ currentTask.vault_note }}</ion-col>
         </ion-row>
       </ion-grid>
 
-      <ion-item lines="none" class="log-box ion-margin-top">
-        <ion-label>
-          <h3>Log Stream</h3>
-          <pre>{{ currentTask.logs.join('\n') }}</pre>
-        </ion-label>
-      </ion-item>
+      <ng-container *ngIf="frontmatterEntries().length > 0">
+        <h3 class="ion-margin-top">Frontmatter</h3>
+        <ion-list lines="none">
+          <ion-item *ngFor="let entry of frontmatterEntries()">
+            <ion-label><strong>{{ entry[0] }}</strong>: {{ entry[1] }}</ion-label>
+          </ion-item>
+        </ion-list>
+      </ng-container>
 
-      <ion-button expand="block" class="ion-margin-top" (click)="startNewThread()">Start New Thread</ion-button>
+      <ion-button
+        expand="block"
+        class="ion-margin-top"
+        [disabled]="isProcessing()"
+        (click)="processTask()"
+        *ngIf="!currentTask.review_due">
+        {{ isProcessing() ? 'Processing...' : 'Process Task' }}
+      </ion-button>
+
+      <ion-button expand="block" class="ion-margin-top" fill="outline" (click)="startNewThread()">
+        Chat / New Thread
+      </ion-button>
     </ion-card-content>
   </ion-card>
 </ion-content>

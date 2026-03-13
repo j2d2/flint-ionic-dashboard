@@ -68,6 +68,20 @@ export interface FlushResult {
   message?: string;
 }
 
+export interface PlanStep {
+  title: string;
+  description: string;
+}
+
+export interface PlanResult {
+  plan_text: string;
+  model_used: string;
+  cost_usd?: number;
+  did_escalate: boolean;
+  steps_parsed: number;
+  children: Array<{ task_id: string; parent_task_id: string; title: string }>;
+}
+
 export interface ThreadEvent {
   type: 'tool_call' | 'tool_result' | 'tip' | 'question' | 'next_step';
   taskId: string;

@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { Router } from '@angular/router';
 
-import { ThreadService } from '../services/thread.service';
+import { TaskService } from '../services/task.service';
 
 @Component({
   selector: 'app-new-thread-modal',
@@ -18,17 +18,19 @@ export class NewThreadModalComponent {
   @Output() threadStarted = new EventEmitter<string>();
 
   readonly isSubmitting = signal(false);
-  prompt = '';
-  agentType = 'standard';
+  title = '';
+  description = '';
+  taskType = 'standard';
 
-  readonly agentTypes = [
+  readonly taskTypes = [
     { value: 'standard', label: 'Standard Agent' },
     { value: 'code', label: 'Code Agent' },
     { value: 'research', label: 'Research Agent' },
+    { value: 'deep', label: 'Deep Analysis' },
   ];
 
   private readonly modalController = inject(ModalController);
-  private readonly threadService = inject(ThreadService);
+  private readonly taskService = inject(TaskService);
   private readonly router = inject(Router);
 
   async dismiss(data?: unknown): Promise<void> {
@@ -39,19 +41,25 @@ export class NewThreadModalComponent {
   }
 
   submit(): void {
-    const cleanPrompt = this.prompt.trim();
-    if (!cleanPrompt || this.isSubmitting()) {
-      return;
-    }
+    const cleanTitle = this.title.trim();
+    if (!cleanTitle || this.isSubmitting()) return;
 
     this.isSubmitting.set(true);
-    this.threadService.startThread(this.taskId, cleanPrompt, this.agentType).subscribe({
-      next: (result) => {
-        this.threadStarted.emit(result.threadId);
-        void this.dismiss({ threadId: result.threadId });
-      },
-      error: () => this.isSubmitting.set(false),
-      complete: () => this.isSubmitting.set(false),
-    });
+    this.taskService
+      .createTask({
+        title: cleanTitle,
+        description: this.description.trim() || undefined,
+        task_type: this.taskType,
+      })
+      .subscribe({
+        next: (task) => {
+          this.threadStarted.emit(task.id);
+          void this.dismiss({ taskId: task.id });
+          void this.router.navigate(['/task', task.id]);
+        },
+        error: () => this.isSubmitting.set(false),
+        complete: () => this.isSubmitting.set(false),
+      });
   }
 }
+

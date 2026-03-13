@@ -20,7 +20,7 @@ import { startTailing, threadEvents } from './services/toolCallTailer';
 import * as flint from './services/flintMcp';
 import { AgentTask } from './types/AgentTask';
 
-const PORT = parseInt(process.env.PORT ?? '3001', 10);
+const PORT = parseInt(process.env.PORT ?? '18310', 10);
 const CORS_ORIGINS = (process.env.CORS_ORIGINS ?? 'http://localhost:4200,capacitor://localhost')
   .split(',')
   .map(o => o.trim());

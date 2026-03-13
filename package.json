@@ -6,11 +6,13 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "serve": "ng serve",
     "build": "ng build",
     "build:pwa": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "lint": "ng lint"
+    "lint": "ng lint",
+    "backend:dev": "cd backend && npm run dev"
   },
   "private": true,
   "dependencies": {
@@ -30,6 +32,7 @@
     "@ionic/angular": "^8.0.0",
     "ionicons": "^7.0.0",
     "rxjs": "~7.8.0",
+    "socket.io-client": "^4.8.3",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"
   },

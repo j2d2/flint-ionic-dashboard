@@ -140,3 +140,19 @@ tasksRouter.post('/:id/chat', async (req: Request, res: Response) => {
     res.status(500).json({ error: (err as Error).message });
   }
 });
+
+// POST /api/tasks/:id/plan — Sonnet plans the task, creates child session_tasks immediately.
+// Flow: route_and_query (local) → escalate to Sonnet if confidence < 0.8
+//       → parsePlan() → add_session_task per step → return children list.
+tasksRouter.post('/:id/plan', async (req: Request, res: Response) => {
+  try {
+    const result = await flint.planTask(req.params.id);
+    if ('error' in result) {
+      res.status(400).json(result);
+      return;
+    }
+    res.status(201).json(result);
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});

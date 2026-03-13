@@ -18,11 +18,11 @@
   <ion-list>
     <ion-item button detail="true" *ngFor="let task of tasks()" (click)="openTask(task.id)">
       <ion-label>
-        <h2>{{ task.name }}</h2>
-        <p>{{ task.agentType }} · {{ task.model }}</p>
+        <h2>{{ task.title }}</h2>
+        <p>{{ task.task_type }} &middot; {{ task.model ?? '&mdash;' }}</p>
       </ion-label>
       <ion-badge slot="end" [color]="statusColor(task.status)">{{ task.status }}</ion-badge>
-      <ion-note slot="end" class="ion-padding-start">{{ formatRunTime(task.lastRun) }}</ion-note>
+      <ion-note slot="end" class="ion-padding-start">{{ formatDate(task.updated_at) }}</ion-note>
     </ion-item>
   </ion-list>
 

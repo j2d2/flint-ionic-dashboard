@@ -8,7 +8,7 @@
  *   Accept: application/json, text/event-stream
  * and responses are SSE with `data:` prefixed JSON lines.
  */
-import { AgentTask, AgentTaskPatch, ApprovalItem, NewTaskPayload } from '../types/AgentTask';
+import { AgentTask, AgentTaskPatch, ApprovalItem, NewTaskPayload, PlanResult, PlanStep } from '../types/AgentTask';
 
 const FLINT_URL = process.env.FLINT_MCP_URL ?? 'http://127.0.0.1:18765/mcp';
 const DISABLE_ESCALATION = process.env.DISABLE_ESCALATION === 'true';
@@ -19,6 +19,8 @@ const ALLOWED_TOOLS = new Set([
   'get_task_detail',
   'get_task_with_children',
   'get_task_queue_stats',
+  'route_and_query',
+  'query_claude_api',
   'add_agent_task',
   'add_session_task',
   'list_session_tasks',
@@ -158,4 +160,163 @@ export async function flushWrites(dryRun = false): Promise<unknown> {
 
 export async function getQueueStats(): Promise<unknown> {
   return callTool('get_task_queue_stats', {});
+}
+
+// ---------------------------------------------------------------------------
+// Plan parser — converts Sonnet plan response into discrete PlanSteps.
+//
+// Recognises:
+//   ## 1. Title          (ATX heading with number prefix)
+//   ## Step 1: Title     (explicit "Step N:" prefix)
+//   1. **Title**         (numbered list, bold title)
+//   1. Title             (plain numbered list)
+//   **Step 1: Title**    (bold paragraph step marker)
+// ---------------------------------------------------------------------------
+function parsePlan(text: string): PlanStep[] {
+  const steps: PlanStep[] = [];
+  const lines = text.split('\n');
+
+  let currentTitle = '';
+  let currentBody: string[] = [];
+
+  const flush = () => {
+    const t = currentTitle.trim().slice(0, 120);
+    const d = currentBody.join(' ').replace(/\s+/g, ' ').trim().slice(0, 1200);
+    if (t.length > 2) steps.push({ title: t, description: d });
+    currentTitle = '';
+    currentBody = [];
+  };
+
+  // Strip a leading "N." / "Step N:" / "Step N." prefix from a heading
+  const stripPrefix = (s: string) =>
+    s.replace(/^(?:Step\s*\d+\s*[:.)]\s*|\d+[.)]\s*)/i, '').trim();
+
+  for (const line of lines) {
+    // ATX headings: #, ##, ### (any depth)
+    const headingMatch = line.match(/^#{1,3}\s+(.+)/);
+    if (headingMatch) {
+      flush();
+      currentTitle = stripPrefix(headingMatch[1]);
+      continue;
+    }
+
+    // Bold paragraph marker: **Step N: Title** or **N. Title**
+    const boldStepMatch = line.match(/^\*{1,2}(Step\s*\d+\s*[:.)]\s*.+?|[\d]+[.)]\s+.+?)\*{1,2}\s*$/i);
+    if (boldStepMatch) {
+      flush();
+      currentTitle = stripPrefix(boldStepMatch[1]);
+      continue;
+    }
+
+    // Numbered list item: "1. Title" or "1. **Title** — description"
+    const numListMatch = line.match(/^(\d+)[.)]\s+\*{0,2}([^*\n]+?)\*{0,2}(?:\s+[—–-]\s+(.+))?$/);
+    if (numListMatch) {
+      flush();
+      currentTitle = numListMatch[2].trim();
+      if (numListMatch[3]) currentBody.push(numListMatch[3].trim());
+      continue;
+    }
+
+    // Body text accumulation
+    if (currentTitle) {
+      const t = line.trim();
+      if (t && !t.startsWith('---')) currentBody.push(t);
+    }
+  }
+
+  flush();
+
+  // Filter noise (very short "titles" are usually stray lines)
+  return steps.filter(s => s.title.length > 3);
+}
+
+// ---------------------------------------------------------------------------
+// planTask — ask Sonnet to plan a task, then create children immediately.
+// ---------------------------------------------------------------------------
+const PLAN_SYSTEM = `You are the orchestrator of a local AI agent swarm (Flint/OpenClaw).
+Your job: given a task, produce a numbered implementation plan.
+
+Rules:
+- Output numbered sections (## 1. Title) immediately — no preamble.
+- Each section = one executable sub-task: name files, tools, commands.
+- 3–7 steps. Each title ≤ 10 words. Each body ≤ 3 sentences.
+- No meta-commentary, no "here is my plan", no closing summary.`;
+
+export async function planTask(taskId: string): Promise<PlanResult | { error: string }> {
+  // 1. Fetch parent task
+  const task = await getTask(taskId);
+  if (!task) return { error: `Task not found: ${taskId}` };
+
+  const prompt = [
+    `Task: ${task.title}`,
+    `Type: ${task.task_type}  Priority: ${task.priority}`,
+    task.description ? `\nDescription:\n${task.description.slice(0, 600)}` : '',
+    '\nProduce an implementation plan.',
+  ].join('\n').trim();
+
+  // 2. Try local routing first (route_and_query classifies + scores)
+  type RouteResult = {
+    response: string;
+    should_escalate: boolean;
+    model?: string;
+    confidence?: number;
+    escalation_prompt?: string;
+  };
+
+  const localResult = await callTool('route_and_query', {
+    prompt,
+    system: PLAN_SYSTEM,
+  }) as RouteResult;
+
+  let planText: string = localResult.response ?? '';
+  let modelUsed: string = localResult.model ?? 'local';
+  let costUsd: number | undefined;
+  let didEscalate = false;
+
+  // 3. Escalate to Sonnet if confidence < threshold (planning threshold = 0.8)
+  if (localResult.should_escalate) {
+    type ClaudeResult = { response: string; model: string; cost_estimate_usd?: number };
+
+    const claudeResult = await callTool('query_claude_api', {
+      prompt: localResult.escalation_prompt ?? prompt,
+      system: PLAN_SYSTEM,
+      local_context: localResult,
+      max_tokens: 2048,
+    }) as ClaudeResult;
+
+    planText = claudeResult.response ?? planText;
+    modelUsed = claudeResult.model ?? modelUsed;
+    costUsd = claudeResult.cost_estimate_usd;
+    didEscalate = true;
+  }
+
+  // 4. Strip Flint footer banner (⚡ Flint local · …)
+  planText = planText.replace(/\n\n---\n⚡ Flint local[^\n]*/s, '').trim();
+
+  // 5. Parse plan → steps
+  let steps = parsePlan(planText);
+  if (steps.length === 0) {
+    // Graceful fallback: single child with full response as description
+    steps = [{ title: `Plan: ${task.title}`.slice(0, 120), description: planText.slice(0, 800) }];
+  }
+
+  // 6. Create session_task children under the parent (immediately executable)
+  const children: PlanResult['children'] = [];
+  for (const step of steps) {
+    try {
+      const r = await addSessionTask(taskId, step.title, step.description);
+      children.push({ task_id: r.task_id, parent_task_id: taskId, title: step.title });
+    } catch (e) {
+      console.warn(`[planTask] child task creation failed for "${step.title}":`, (e as Error).message);
+    }
+  }
+
+  return {
+    plan_text: planText,
+    model_used: modelUsed,
+    cost_usd: costUsd,
+    did_escalate: didEscalate,
+    steps_parsed: steps.length,
+    children,
+  };
 }

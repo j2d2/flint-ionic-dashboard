@@ -4,7 +4,7 @@
   "private": true,
   "description": "Express + Socket.io bridge between Ionic dashboard and Flint MCP",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "dev": "lsof -ti:${PORT:-18310} | xargs kill -9 2>/dev/null; ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js"
   },

@@ -9,25 +9,35 @@
 
 <ion-content class="ion-padding">
   <ion-item>
-    <ion-label position="stacked">Prompt</ion-label>
+    <ion-label position="stacked">Title</ion-label>
     <ion-textarea
-      [(ngModel)]="prompt"
+      [(ngModel)]="title"
       placeholder="What should this agent do?"
       auto-grow="true"
-      rows="6"
+      rows="3"
+    ></ion-textarea>
+  </ion-item>
+
+  <ion-item>
+    <ion-label position="stacked">Description (optional)</ion-label>
+    <ion-textarea
+      [(ngModel)]="description"
+      placeholder="Additional context..."
+      auto-grow="true"
+      rows="3"
     ></ion-textarea>
   </ion-item>
 
   <ion-item>
     <ion-label>Agent Type</ion-label>
-    <ion-select [(ngModel)]="agentType" interface="popover">
-      <ion-select-option *ngFor="let type of agentTypes" [value]="type.value">
+    <ion-select [(ngModel)]="taskType" interface="popover">
+      <ion-select-option *ngFor="let type of taskTypes" [value]="type.value">
         {{ type.label }}
       </ion-select-option>
     </ion-select>
   </ion-item>
 
-  <ion-button expand="block" class="ion-margin-top" [disabled]="isSubmitting() || !prompt.trim()" (click)="submit()">
+  <ion-button expand="block" class="ion-margin-top" [disabled]="isSubmitting() || !title.trim()" (click)="submit()">
     {{ isSubmitting() ? 'Starting...' : 'Start Thread' }}
   </ion-button>
 </ion-content>

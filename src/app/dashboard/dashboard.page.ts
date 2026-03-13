@@ -1,10 +1,12 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { IonicModule, ModalController } from '@ionic/angular';
+import { Subscription } from 'rxjs';
 
-import { AgentTask, AgentTaskStatus } from '../models/agent-task.model';
+import { AgentTask, statusColor } from '../models/agent-task.model';
 import { NewThreadModalComponent } from '../new-thread/new-thread-modal.component';
+import { SocketService } from '../services/socket.service';
 import { TaskService } from '../services/task.service';
 
 @Component({
@@ -15,17 +17,33 @@ import { TaskService } from '../services/task.service';
   imports: [CommonModule, RouterModule, IonicModule],
   providers: [DatePipe],
 })
-export class DashboardPage implements OnInit {
+export class DashboardPage implements OnInit, OnDestroy {
   readonly tasks = signal<AgentTask[]>([]);
   readonly isLoading = signal(false);
 
+  readonly statusColor = statusColor;
+
   private readonly router = inject(Router);
   private readonly taskService = inject(TaskService);
+  private readonly socketService = inject(SocketService);
   private readonly modalController = inject(ModalController);
   private readonly datePipe = inject(DatePipe);
+  private readonly subs = new Subscription();
 
   ngOnInit(): void {
     this.loadTasks();
+    this.socketService.connect();
+    this.subs.add(
+      this.socketService.onTaskUpdate().subscribe((updated) => {
+        this.tasks.update((list) =>
+          list.map((t) => (t.id === updated.id ? updated : t))
+        );
+      })
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subs.unsubscribe();
   }
 
   loadTasks(event?: CustomEvent): void {
@@ -53,22 +71,9 @@ export class DashboardPage implements OnInit {
     void this.router.navigate(['/task', taskId]);
   }
 
-  statusColor(status: AgentTaskStatus): 'warning' | 'medium' | 'danger' | 'success' {
-    switch (status) {
-      case 'running':
-        return 'warning';
-      case 'idle':
-        return 'medium';
-      case 'error':
-        return 'danger';
-      case 'complete':
-        return 'success';
-      default:
-        return 'medium';
-    }
-  }
-
-  formatRunTime(isoDate: string): string {
+  formatDate(isoDate?: string): string {
+    if (!isoDate) return '-';
     return this.datePipe.transform(isoDate, 'MMM d, h:mm a') ?? isoDate;
   }
 }
+
