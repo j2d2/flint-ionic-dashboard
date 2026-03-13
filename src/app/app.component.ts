@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { addIcons } from 'ionicons';
-import { addCircleOutline, listOutline } from 'ionicons/icons';
+import { addCircleOutline, chatbubbleOutline, listOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-root',
@@ -11,10 +11,11 @@ import { addCircleOutline, listOutline } from 'ionicons/icons';
 export class AppComponent {
   readonly appPages = [
     { title: 'Dashboard', url: '/dashboard', icon: 'list-outline' },
+    { title: 'Chat', url: '/chat', icon: 'chatbubble-outline' },
     { title: 'New Thread', url: '/new-thread', icon: 'add-circle-outline' },
   ];
 
   constructor() {
-    addIcons({ addCircleOutline, listOutline });
+    addIcons({ addCircleOutline, chatbubbleOutline, listOutline });
   }
 }

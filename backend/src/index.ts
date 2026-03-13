@@ -16,6 +16,7 @@ import { Server as SocketIoServer } from 'socket.io';
 import { tasksRouter } from './routes/tasks';
 import { approvalsRouter } from './routes/approvals';
 import { threadsRouter } from './routes/threads';
+import { chatRouter } from './routes/chat';
 import { startTailing, threadEvents } from './services/toolCallTailer';
 import * as flint from './services/flintMcp';
 import { AgentTask } from './types/AgentTask';
@@ -59,6 +60,7 @@ app.use(express.json({ limit: '64kb' }));
 app.use('/api/tasks', tasksRouter);
 app.use('/api/approvals', approvalsRouter);
 app.use('/api/threads', threadsRouter);
+app.use('/api/chat', chatRouter);
 
 app.get('/api/health', (_req, res) => {
   res.json({

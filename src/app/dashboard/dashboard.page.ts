@@ -1,5 +1,5 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
@@ -20,8 +20,26 @@ import { TaskService } from '../services/task.service';
 export class DashboardPage implements OnInit, OnDestroy {
   readonly tasks = signal<AgentTask[]>([]);
   readonly isLoading = signal(false);
+  readonly filter = signal<'active' | 'all'>('active');
+
+  readonly filteredTasks = computed(() =>
+    this.filter() === 'all'
+      ? this.tasks()
+      : this.tasks().filter((t) => t.status !== 'done')
+  );
 
   readonly statusColor = statusColor;
+
+  priorityColor(p: number): string {
+    if (p <= 1) return 'danger';
+    if (p === 2) return 'warning';
+    if (p === 3) return 'medium';
+    return 'light';
+  }
+
+  priorityLabel(p: number): string {
+    return `P${p}`;
+  }
 
   private readonly router = inject(Router);
   private readonly taskService = inject(TaskService);

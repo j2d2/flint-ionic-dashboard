@@ -8,6 +8,16 @@
       <ion-button (click)="openNewThread()">New Thread</ion-button>
     </ion-buttons>
   </ion-toolbar>
+  <ion-toolbar>
+    <ion-segment [value]="filter()" (ionChange)="filter.set($any($event.detail.value))">
+      <ion-segment-button value="active">
+        <ion-label>Active</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="all">
+        <ion-label>All</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
 </ion-header>
 
 <ion-content>
@@ -16,11 +26,12 @@
   </ion-refresher>
 
   <ion-list>
-    <ion-item button detail="true" *ngFor="let task of tasks()" (click)="openTask(task.id)">
+    <ion-item button detail="true" *ngFor="let task of filteredTasks()" (click)="openTask(task.id)">
       <ion-label>
         <h2>{{ task.title }}</h2>
         <p>{{ task.task_type }} &middot; {{ task.model ?? '&mdash;' }}</p>
       </ion-label>
+      <ion-badge slot="end" [color]="priorityColor(task.priority)" class="priority-badge">{{ priorityLabel(task.priority) }}</ion-badge>
       <ion-badge slot="end" [color]="statusColor(task.status)">{{ task.status }}</ion-badge>
       <ion-note slot="end" class="ion-padding-start">{{ formatDate(task.updated_at) }}</ion-note>
     </ion-item>

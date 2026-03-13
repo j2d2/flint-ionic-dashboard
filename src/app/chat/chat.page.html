@@ -1,0 +1,54 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Chat with Flint</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content #msgList class="chat-content">
+  <div class="messages">
+    <div
+      *ngFor="let msg of messages()"
+      class="message"
+      [class.message--user]="msg.role === 'user'"
+      [class.message--flint]="msg.role === 'flint'"
+    >
+      <div class="bubble">
+        <p>{{ msg.text }}</p>
+        <span *ngIf="msg.model" class="model-label">{{ msg.model }}</span>
+      </div>
+    </div>
+
+    <div *ngIf="isSending()" class="message message--flint">
+      <div class="bubble bubble--typing">
+        <ion-spinner name="dots"></ion-spinner>
+      </div>
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <ion-textarea
+      [value]="input()"
+      (ionInput)="input.set($any($event.detail.value) ?? '')"
+      placeholder="Ask Flint anything…"
+      autoGrow="true"
+      rows="1"
+      (keydown)="onEnter($event)"
+      class="chat-input"
+    ></ion-textarea>
+    <ion-buttons slot="end">
+      <ion-button
+        fill="solid"
+        color="primary"
+        [disabled]="!input().trim() || isSending()"
+        (click)="send()"
+      >
+        <ion-icon slot="icon-only" name="send-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

@@ -320,3 +320,18 @@ export async function planTask(taskId: string): Promise<PlanResult | { error: st
     children,
   };
 }
+
+/** Direct chat — calls Flint's route_and_query and returns the response. */
+export async function routeAndQuery(prompt: string): Promise<{
+  response: string;
+  model?: string;
+  should_escalate?: boolean;
+  confidence?: number;
+}> {
+  return callTool('route_and_query', { prompt }) as Promise<{
+    response: string;
+    model?: string;
+    should_escalate?: boolean;
+    confidence?: number;
+  }>;
+}

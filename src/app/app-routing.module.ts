@@ -7,6 +7,10 @@ const routes: Routes = [
     loadComponent: () => import('./dashboard/dashboard.page').then((m) => m.DashboardPage),
   },
   {
+    path: 'chat',
+    loadComponent: () => import('./chat/chat.page').then((m) => m.ChatPage),
+  },
+  {
     path: 'task/:id',
     loadComponent: () => import('./task-detail/task-detail.page').then((m) => m.TaskDetailPage),
   },
