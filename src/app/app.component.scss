@@ -1,7 +1,77 @@
 :host {
-	display: block;
+  display: block;
 }
 
 ion-menu {
-	--width: 280px;
+  --width: 280px;
+}
+
+ion-menu ion-footer ion-toolbar {
+  --background: var(--ion-color-step-50, #111);
+  --border-color: rgba(var(--ion-color-medium-rgb), 0.15);
+}
+
+.footer-device-item {
+  --background: transparent;
+  --padding-start: 16px;
+}
+
+.footer-version {
+  font-size: 11px;
+  opacity: 0.55;
+  margin-top: 1px;
+}
+
+// ─── Side-menu: Mission Control channel shortcuts ───────────────────────────
+
+.menu-channels {
+  margin-top: 8px;
+  border-top: 1px solid rgba(var(--ion-color-medium-rgb), 0.15);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    cursor: pointer;
+    user-select: none;
+    color: var(--ion-color-medium);
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-weight: 600;
+    outline: none;
+
+    ion-icon { font-size: 1rem; flex-shrink: 0; }
+
+    &:hover,
+    &:focus-visible { color: var(--ion-color-primary); }
+  }
+
+  &__label {
+    flex: 1;
+  }
+
+  &__chevron {
+    font-size: 0.85rem;
+    transition: transform 0.18s ease;
+  }
+
+  &__list {
+    padding: 0 0 6px 0;
+  }
+}
+
+.channel-item {
+  --padding-start: 24px;
+  --min-height: 42px;
+  font-size: 0.9rem;
+}
+
+.ch-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-inline-start: 4px;
 }

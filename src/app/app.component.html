@@ -18,7 +18,66 @@
             </ion-menu-toggle>
           }
         </ion-list>
+
+        <!-- Mission Control channel shortcuts -->
+        <div class="menu-channels">
+          <div
+            class="menu-channels__header"
+            (click)="toggleChannels()"
+            (keyup.enter)="toggleChannels()"
+            (keyup.space)="toggleChannels()"
+            role="button"
+            tabindex="0"
+            [attr.aria-expanded]="channelsOpen"
+          >
+            <ion-icon name="grid-outline"></ion-icon>
+            <span class="menu-channels__label">Mission Control</span>
+            <ion-icon
+              [name]="channelsOpen ? 'chevron-down-outline' : 'chevron-forward-outline'"
+              class="menu-channels__chevron"
+            ></ion-icon>
+          </div>
+
+          @if (channelsOpen) {
+            <ion-list class="menu-channels__list">
+              @for (ch of channels; track ch.id) {
+                <ion-menu-toggle autoHide="false">
+                  <ion-item
+                    [routerLink]="['/dashboard']"
+                    routerDirection="root"
+                    (click)="selectChannel(ch)"
+                    button
+                    lines="none"
+                    class="channel-item"
+                  >
+                    <ion-icon slot="start" [name]="ch.icon" [color]="ch.color"></ion-icon>
+                    <ion-label>{{ ch.name }}</ion-label>
+                    <div
+                      slot="end"
+                      class="ch-dot"
+                      [style.background]="'var(--ion-color-' + ch.color + ')'"
+                    ></div>
+                  </ion-item>
+                </ion-menu-toggle>
+              }
+            </ion-list>
+          }
+        </div>
       </ion-content>
+
+      <ion-footer>
+        <ion-toolbar>
+          <ion-menu-toggle autoHide="false">
+            <ion-item [routerLink]="['/home']" routerDirection="root" lines="none" class="footer-device-item">
+              <ion-icon slot="start" name="hardware-chip-outline"></ion-icon>
+              <ion-label>
+                <h3>Device Info</h3>
+                <p class="footer-version">Version {{ version }}</p>
+              </ion-label>
+            </ion-item>
+          </ion-menu-toggle>
+        </ion-toolbar>
+      </ion-footer>
     </ion-menu>
 
     <ion-router-outlet id="main-content"></ion-router-outlet>

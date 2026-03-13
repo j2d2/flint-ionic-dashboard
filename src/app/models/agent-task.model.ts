@@ -46,6 +46,8 @@ export interface NewTaskPayload {
   task_type: string;
   priority?: number;
   parent_id?: string;
+  tags?: string;
+  vault_link?: string;
 }
 
 export interface ApprovalItem {

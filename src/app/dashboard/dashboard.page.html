@@ -31,7 +31,9 @@
 
 <!-- ─── KANBAN VIEW ─── -->
 <div class="kanban-wrap" *ngIf="view() === 'kanban'">
-  <div class="kanban-col" *ngFor="let ch of channels">
+  <div class="kanban-col" *ngFor="let ch of channels"
+       [id]="'col-' + ch.id"
+       [class.col--active]="activeChannelId() === ch.id">
     <div class="col-header">
       <ion-icon [name]="ch.icon" [color]="ch.color"></ion-icon>
       <span class="col-title">{{ ch.name }}</span>

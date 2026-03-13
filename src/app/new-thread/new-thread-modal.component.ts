@@ -1,10 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output, inject, signal } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { Router } from '@angular/router';
 
+import { AgentTask } from '../models/agent-task.model';
+import { Channel, DEFAULT_CHANNELS } from '../models/channel.model';
 import { TaskService } from '../services/task.service';
+
+export type ModalMode = 'task' | 'thread';
 
 @Component({
   selector: 'app-new-thread-modal',
@@ -13,7 +17,8 @@ import { TaskService } from '../services/task.service';
   standalone: true,
   imports: [CommonModule, FormsModule, IonicModule],
 })
-export class NewThreadModalComponent {
+export class NewThreadModalComponent implements OnInit {
+  @Input() mode: ModalMode = 'task';
   @Input() taskId = 'ad-hoc';
   @Output() threadStarted = new EventEmitter<string>();
 
@@ -21,6 +26,9 @@ export class NewThreadModalComponent {
   title = '';
   description = '';
   taskType = 'standard';
+  channel = 'inbox';
+
+  readonly channels: Channel[] = DEFAULT_CHANNELS;
 
   readonly taskTypes = [
     { value: 'standard', label: 'Standard Agent' },
@@ -29,9 +37,29 @@ export class NewThreadModalComponent {
     { value: 'deep', label: 'Deep Analysis' },
   ];
 
+  get modalTitle(): string {
+    return this.mode === 'thread' ? 'New Thread' : 'New Agent Task';
+  }
+
+  get submitLabel(): string {
+    if (this.isSubmitting()) return 'Creating…';
+    return this.mode === 'thread' ? 'Start Thread' : 'Create Task';
+  }
+
   private readonly modalController = inject(ModalController);
   private readonly taskService = inject(TaskService);
   private readonly router = inject(Router);
+
+  ngOnInit(): void {
+    if (this.mode === 'thread' && this.channel === 'code') this.taskType = 'code';
+    else if (this.mode === 'thread' && this.channel === 'research') this.taskType = 'research';
+  }
+
+  onChannelChange(): void {
+    if (this.channel === 'code') this.taskType = 'code';
+    else if (this.channel === 'research') this.taskType = 'research';
+    else this.taskType = 'standard';
+  }
 
   async dismiss(data?: unknown): Promise<void> {
     const wasModalDismissed = await this.modalController.dismiss(data);
@@ -45,17 +73,24 @@ export class NewThreadModalComponent {
     if (!cleanTitle || this.isSubmitting()) return;
 
     this.isSubmitting.set(true);
+    const tags = this.mode === 'thread' ? `channel:${this.channel}` : undefined;
+
     this.taskService
       .createTask({
         title: cleanTitle,
         description: this.description.trim() || undefined,
         task_type: this.taskType,
+        tags,
       })
       .subscribe({
-        next: (task) => {
+        next: (task: AgentTask) => {
           this.threadStarted.emit(task.id);
-          void this.dismiss({ taskId: task.id });
-          void this.router.navigate(['/task', task.id]);
+          if (this.mode === 'thread') {
+            void this.dismiss({ task });
+            void this.router.navigate(['/task', task.id]);
+          } else {
+            void this.dismiss({ task });
+          }
         },
         error: () => this.isSubmitting.set(false),
         complete: () => this.isSubmitting.set(false),

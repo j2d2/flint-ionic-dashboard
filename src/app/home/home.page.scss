@@ -37,3 +37,25 @@
   gap: 8px;
   margin-top: 16px;
 }
+
+.mission-banner {
+  text-align: center;
+  padding: 22px 16px 10px;
+
+  .mission-icon {
+    font-size: 40px;
+    display: block;
+    margin: 0 auto 10px;
+    color: var(--ion-color-primary);
+    opacity: 0.8;
+  }
+
+  .mission-quote {
+    font-style: italic;
+    font-size: 13.5px;
+    line-height: 1.65;
+    color: var(--ion-color-medium);
+    max-width: 380px;
+    margin: 0 auto;
+  }
+}

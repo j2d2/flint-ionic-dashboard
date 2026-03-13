@@ -1,6 +1,6 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>Start New Thread</ion-title>
+    <ion-title>{{ modalTitle }}</ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="dismiss()">Close</ion-button>
     </ion-buttons>
@@ -28,6 +28,16 @@
     ></ion-textarea>
   </ion-item>
 
+  <!-- Channel picker — only for Thread mode -->
+  <ion-item *ngIf="mode === 'thread'">
+    <ion-label>Channel</ion-label>
+    <ion-select [(ngModel)]="channel" interface="popover" (ngModelChange)="onChannelChange()">
+      <ion-select-option *ngFor="let ch of channels" [value]="ch.id">
+        {{ ch.name }}
+      </ion-select-option>
+    </ion-select>
+  </ion-item>
+
   <ion-item>
     <ion-label>Agent Type</ion-label>
     <ion-select [(ngModel)]="taskType" interface="popover">
@@ -38,6 +48,6 @@
   </ion-item>
 
   <ion-button expand="block" class="ion-margin-top" [disabled]="isSubmitting() || !title.trim()" (click)="submit()">
-    {{ isSubmitting() ? 'Starting...' : 'Start Thread' }}
+    {{ submitLabel }}
   </ion-button>
 </ion-content>

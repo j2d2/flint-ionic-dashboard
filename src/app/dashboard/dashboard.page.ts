@@ -1,11 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { IonicModule, ModalController } from '@ionic/angular';
 
 import { QueueStats } from '../models/agent-task.model';
 import { Channel, DEFAULT_CHANNELS } from '../models/channel.model';
 import { NewThreadModalComponent } from '../new-thread/new-thread-modal.component';
+import { ChannelService } from '../services/channel.service';
 import { TaskService } from '../services/task.service';
 
 @Component({
@@ -23,6 +24,18 @@ export class DashboardPage implements OnInit {
   private readonly router = inject(Router);
   private readonly taskService = inject(TaskService);
   private readonly modalController = inject(ModalController);
+  private readonly channelService = inject(ChannelService);
+
+  readonly activeChannelId = computed(() => this.channelService.activeChannel()?.id ?? null);
+
+  constructor() {
+    effect(() => {
+      const id = this.activeChannelId();
+      if (id) {
+        this.scrollToChannel(id);
+      }
+    });
+  }
 
   ngOnInit(): void {
     this.loadStats();
@@ -55,6 +68,13 @@ export class DashboardPage implements OnInit {
       initialBreakpoint: 0.7,
     });
     await modal.present();
+  }
+
+  private scrollToChannel(channelId: string): void {
+    setTimeout(() => {
+      const el = document.getElementById(`col-${channelId}`);
+      el?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+    }, 150);
   }
 }
 

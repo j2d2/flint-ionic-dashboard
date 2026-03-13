@@ -1,5 +1,5 @@
 <ion-header>
-  <ion-toolbar>
+  <ion-toolbar color="dark">
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
@@ -8,6 +8,12 @@
 </ion-header>
 
 <ion-content class="ion-padding">
+
+  <!-- Mission statement -->
+  <div class="mission-banner">
+    <ion-icon name="heart-circle-outline" class="mission-icon"></ion-icon>
+    <p class="mission-quote">To build useful tools &amp; processes that improve life for humans, spread hope and love into the world, and protect my family — helping them and the people around them thrive.</p>
+  </div>
 
   <ng-container *ngIf="info() as sys">
     <!-- Tier badge -->

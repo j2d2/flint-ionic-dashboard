@@ -8,6 +8,8 @@ import { AgentTask, statusColor } from '../models/agent-task.model';
 import { NewThreadModalComponent } from '../new-thread/new-thread-modal.component';
 import { SocketService } from '../services/socket.service';
 import { TaskService } from '../services/task.service';
+import { addIcons } from 'ionicons';
+import { addOutline, chatbubbleEllipsesOutline, documentOutline, documentTextOutline, flashOutline, gitBranchOutline, timeOutline, trendingUpOutline } from 'ionicons/icons';
 
 const PAGE_SIZE = 50;
 
@@ -24,17 +26,23 @@ export class AgentTasksPage implements OnInit, OnDestroy {
   readonly total = signal(0);
   readonly isLoading = signal(false);
   readonly isLoadingMore = signal(false);
-  readonly filter = signal<'active' | 'all'>('active');
+  readonly filter = signal<'active' | 'all' | 'review'>(
+    (localStorage.getItem('agent-tasks:filter') as 'active' | 'all' | 'review') ?? 'active'
+  );
   readonly sortBy = signal<'priority' | 'updated'>('priority');
+
+  readonly sortLabel = computed(() => this.sortBy() === 'updated' ? 'Recent' : 'Priority');
+  readonly reviewDueCount = computed(() => this.tasks().filter((t) => t.review_due === 1).length);
 
   private offset = 0;
   private allLoaded = false;
 
   readonly filteredTasks = computed(() => {
+    const f = this.filter();
     const list =
-      this.filter() === 'all'
-        ? this.tasks()
-        : this.tasks().filter((t) => t.status !== 'done');
+      f === 'all' ? this.tasks() :
+      f === 'review' ? this.tasks().filter((t) => t.review_due === 1) :
+      this.tasks().filter((t) => t.status !== 'done');
     if (this.sortBy() === 'updated') {
       return [...list].sort(
         (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
@@ -48,6 +56,10 @@ export class AgentTasksPage implements OnInit, OnDestroy {
   });
 
   readonly statusColor = statusColor;
+
+  constructor() {
+    addIcons({ documentTextOutline, addOutline, trendingUpOutline, timeOutline, flashOutline, gitBranchOutline, chatbubbleEllipsesOutline });
+  }
 
   priorityColor(p: number): string {
     if (p <= 1) return 'danger';
@@ -72,9 +84,17 @@ export class AgentTasksPage implements OnInit, OnDestroy {
     this.socketService.connect();
     this.subs.add(
       this.socketService.onTaskUpdate().subscribe((updated) => {
-        this.tasks.update((list) =>
-          list.map((t) => (t.id === updated.id ? updated : t))
-        );
+        this.tasks.update((list) => {
+          const idx = list.findIndex((t) => t.id === updated.id);
+          if (idx >= 0) {
+            const next = [...list];
+            next[idx] = updated;
+            return next;
+          }
+          // New task — prepend and bump total
+          this.total.update((n) => n + 1);
+          return [updated, ...list];
+        });
       })
     );
   }
@@ -126,15 +146,36 @@ export class AgentTasksPage implements OnInit, OnDestroy {
   }
 
   onFilterChange(value: string): void {
-    this.filter.set(value as 'active' | 'all');
+    const v = value as 'active' | 'all' | 'review';
+    localStorage.setItem('agent-tasks:filter', v);
+    this.filter.set(v);
   }
 
-  async openNewAgentTask(taskId = 'ad-hoc'): Promise<void> {
+  async openNewAgentTask(): Promise<void> {
     const modal = await this.modalController.create({
       component: NewThreadModalComponent,
-      componentProps: { taskId },
+      componentProps: { mode: 'task' },
       breakpoints: [0, 0.7, 1],
       initialBreakpoint: 0.7,
+    });
+    await modal.present();
+    const { data } = await modal.onDidDismiss<{ task?: AgentTask }>();
+    if (data?.task) {
+      // Prepend immediately — socket may also broadcast; dedup handles it
+      this.tasks.update((list) => {
+        if (list.some((t) => t.id === data.task!.id)) return list;
+        this.total.update((n) => n + 1);
+        return [data.task!, ...list];
+      });
+    }
+  }
+
+  async openNewThread(): Promise<void> {
+    const modal = await this.modalController.create({
+      component: NewThreadModalComponent,
+      componentProps: { mode: 'thread' },
+      breakpoints: [0, 0.8, 1],
+      initialBreakpoint: 0.8,
     });
     await modal.present();
   }
