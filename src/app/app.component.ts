@@ -1,6 +1,14 @@
 import { Component } from '@angular/core';
 import { addIcons } from 'ionicons';
-import { addCircleOutline, chatbubbleOutline, listOutline } from 'ionicons/icons';
+import {
+  addCircleOutline,
+  chatbubbleOutline,
+  flashOutline,
+  gridOutline,
+  hardwareChipOutline,
+  listOutline,
+  telescopeOutline,
+} from 'ionicons/icons';
 
 @Component({
   selector: 'app-root',
@@ -10,12 +18,22 @@ import { addCircleOutline, chatbubbleOutline, listOutline } from 'ionicons/icons
 })
 export class AppComponent {
   readonly appPages = [
-    { title: 'Dashboard', url: '/dashboard', icon: 'list-outline' },
-    { title: 'Chat', url: '/chat', icon: 'chatbubble-outline' },
-    { title: 'New Thread', url: '/new-thread', icon: 'add-circle-outline' },
+    { title: 'Device Info',      url: '/home',        icon: 'hardware-chip-outline' },
+    { title: 'Mission Control',  url: '/dashboard',   icon: 'grid-outline'          },
+    { title: 'Agent Tasks',      url: '/agent-tasks', icon: 'flash-outline'         },
+    { title: 'Chat',             url: '/chat',        icon: 'chatbubble-outline'    },
   ];
 
   constructor() {
-    addIcons({ addCircleOutline, chatbubbleOutline, listOutline });
+    addIcons({
+      addCircleOutline,
+      chatbubbleOutline,
+      flashOutline,
+      gridOutline,
+      hardwareChipOutline,
+      listOutline,
+      telescopeOutline,
+    });
   }
 }
+

@@ -17,6 +17,7 @@ import { tasksRouter } from './routes/tasks';
 import { approvalsRouter } from './routes/approvals';
 import { threadsRouter } from './routes/threads';
 import { chatRouter } from './routes/chat';
+import { systemRouter } from './routes/system';
 import { startTailing, threadEvents } from './services/toolCallTailer';
 import * as flint from './services/flintMcp';
 import { AgentTask } from './types/AgentTask';
@@ -61,6 +62,7 @@ app.use('/api/tasks', tasksRouter);
 app.use('/api/approvals', approvalsRouter);
 app.use('/api/threads', threadsRouter);
 app.use('/api/chat', chatRouter);
+app.use('/api/system', systemRouter);
 
 app.get('/api/health', (_req, res) => {
   res.json({

@@ -1,45 +1,75 @@
 <ion-header>
-  <ion-toolbar>
+  <ion-toolbar color="dark">
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
-    <ion-title>Agent Dashboard</ion-title>
+    <ion-title>Flint Mission Control</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="openNewThread()">New Thread</ion-button>
+      <ion-button (click)="goToChat()" aria-label="Chat">
+        <ion-icon slot="icon-only" name="chatbubble-ellipses-outline"></ion-icon>
+      </ion-button>
+      <ion-button (click)="goToAgentTasks()" aria-label="Agent Tasks">
+        <ion-icon slot="icon-only" name="flash-outline"></ion-icon>
+      </ion-button>
+      <ion-button (click)="toggleView()" aria-label="Toggle view">
+        <ion-icon slot="icon-only" [name]="view() === 'kanban' ? 'list-outline' : 'grid-outline'"></ion-icon>
+      </ion-button>
     </ion-buttons>
-  </ion-toolbar>
-  <ion-toolbar>
-    <ion-segment [value]="filter()" (ionChange)="filter.set($any($event.detail.value))">
-      <ion-segment-button value="active">
-        <ion-label>Active</ion-label>
-      </ion-segment-button>
-      <ion-segment-button value="all">
-        <ion-label>All</ion-label>
-      </ion-segment-button>
-    </ion-segment>
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
-  <ion-refresher slot="fixed" (ionRefresh)="loadTasks($event)">
+<!-- Queue stats strip -->
+<div class="stats-bar" *ngIf="stats()">
+  <span class="stat stat--pending">{{ (stats()!.by_status['pending'] || 0) }} pending</span>
+  <span class="stat-sep">&middot;</span>
+  <span class="stat stat--running">{{ (stats()!.by_status['running'] || 0) }} running</span>
+  <span class="stat-sep">&middot;</span>
+  <span class="stat stat--done">{{ (stats()!.by_status['done'] || 0) }} done</span>
+  <span class="stat-sep">&middot;</span>
+  <span class="stat stat--total">{{ stats()!.total }} total</span>
+</div>
+
+<!-- ─── KANBAN VIEW ─── -->
+<div class="kanban-wrap" *ngIf="view() === 'kanban'">
+  <div class="kanban-col" *ngFor="let ch of channels">
+    <div class="col-header">
+      <ion-icon [name]="ch.icon" [color]="ch.color"></ion-icon>
+      <span class="col-title">{{ ch.name }}</span>
+      <ion-badge color="medium" class="thread-count">0</ion-badge>
+    </div>
+    <div class="col-body">
+      <div class="empty-col">
+        <ion-icon name="git-branch-outline" class="empty-icon"></ion-icon>
+        <p>No threads yet</p>
+        <p class="empty-desc">{{ ch.description }}</p>
+        <ion-button size="small" fill="outline" (click)="newThread(ch.id)">
+          <ion-icon slot="start" name="add-outline"></ion-icon>
+          New Thread
+        </ion-button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── LIST VIEW ─── -->
+<ion-content *ngIf="view() === 'list'">
+  <ion-refresher slot="fixed" (ionRefresh)="loadStats($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <ion-list>
-    <ion-item button detail="true" *ngFor="let task of filteredTasks()" (click)="openTask(task.id)">
-      <ion-label>
-        <h2>{{ task.title }}</h2>
-        <p>{{ task.task_type }} &middot; {{ task.model ?? '&mdash;' }}</p>
+  <ion-list *ngFor="let ch of channels" class="channel-list">
+    <ion-list-header>
+      <ion-icon [name]="ch.icon" [color]="ch.color" class="ch-header-icon"></ion-icon>
+      <ion-label>{{ ch.name }}</ion-label>
+    </ion-list-header>
+    <ion-item lines="none" class="empty-list-item">
+      <ion-label color="medium">
+        <p>No threads in {{ ch.name }} &mdash; {{ ch.description }}</p>
       </ion-label>
-      <ion-badge slot="end" [color]="priorityColor(task.priority)" class="priority-badge">{{ priorityLabel(task.priority) }}</ion-badge>
-      <ion-badge slot="end" [color]="statusColor(task.status)">{{ task.status }}</ion-badge>
-      <ion-note slot="end" class="ion-padding-start">{{ formatDate(task.updated_at) }}</ion-note>
+      <ion-button slot="end" size="small" fill="outline" (click)="newThread(ch.id)">
+        + Thread
+      </ion-button>
     </ion-item>
   </ion-list>
-
-  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-    <ion-fab-button color="primary" (click)="openNewThread()">
-      <ion-icon name="add-circle-outline"></ion-icon>
-    </ion-fab-button>
-  </ion-fab>
 </ion-content>
+

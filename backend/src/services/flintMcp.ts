@@ -20,6 +20,7 @@ const ALLOWED_TOOLS = new Set([
   'get_task_with_children',
   'get_task_queue_stats',
   'route_and_query',
+  'query_model',
   'query_claude_api',
   'add_agent_task',
   'add_session_task',
@@ -81,11 +82,28 @@ async function callTool(name: string, args: object): Promise<unknown> {
 // Typed helpers used by route handlers
 // ---------------------------------------------------------------------------
 
-export async function listTasks(status?: string, limit = 50): Promise<AgentTask[]> {
-  const r = await callTool('list_agent_tasks', { status, limit, exclude_children: true }) as {
+export async function listTasks(
+  status?: string,
+  limit = 100,
+  offset = 0,
+): Promise<AgentTask[]> {
+  const r = await callTool('list_agent_tasks', { status, limit, offset, exclude_children: true }) as {
     tasks?: AgentTask[];
+    total?: number;
   };
   return r?.tasks ?? [];
+}
+
+export async function listTasksPaged(
+  status?: string,
+  limit = 50,
+  offset = 0,
+): Promise<{ tasks: AgentTask[]; total: number }> {
+  const r = await callTool('list_agent_tasks', { status, limit, offset, exclude_children: true }) as {
+    tasks?: AgentTask[];
+    total?: number;
+  };
+  return { tasks: r?.tasks ?? [], total: r?.total ?? 0 };
 }
 
 export async function getTask(id: string): Promise<AgentTask | null> {
@@ -334,4 +352,18 @@ export async function routeAndQuery(prompt: string): Promise<{
     should_escalate?: boolean;
     confidence?: number;
   }>;
+}
+
+/** Direct model call — bypasses routing, uses the specified model. */
+export async function queryModel(prompt: string, model: string): Promise<{
+  response: string;
+  model?: string;
+}> {
+  const raw = await callTool('query_model', { prompt, model });
+  if (typeof raw === 'string') return { response: raw, model };
+  const obj = raw as Record<string, unknown>;
+  return {
+    response: ((obj.response ?? obj.text ?? String(raw)) as string),
+    model: ((obj.model ?? model) as string),
+  };
 }

@@ -1,0 +1,95 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Device Info</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <ng-container *ngIf="info() as sys">
+    <!-- Tier badge -->
+    <div class="tier-header">
+      <ion-chip color="primary" class="tier-chip">
+        <ion-icon name="hardware-chip-outline"></ion-icon>
+        <ion-label>{{ sys.tier }}</ion-label>
+      </ion-chip>
+      <p class="tier-label">{{ sys.tier_label }}</p>
+    </div>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-subtitle>Host</ion-card-subtitle>
+        <ion-card-title>{{ sys.hostname }}</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-grid class="spec-grid">
+          <ion-row>
+            <ion-col size="5" class="spec-key">Platform</ion-col>
+            <ion-col size="7">{{ sys.platform }} / {{ sys.arch }}</ion-col>
+          </ion-row>
+          <ion-row>
+            <ion-col size="5" class="spec-key">CPU</ion-col>
+            <ion-col size="7">{{ sys.cpu_cores }}× {{ sys.cpu_model }}</ion-col>
+          </ion-row>
+          <ion-row>
+            <ion-col size="5" class="spec-key">Memory</ion-col>
+            <ion-col size="7">{{ sys.free_mem_gb }} GB free / {{ sys.total_mem_gb }} GB total</ion-col>
+          </ion-row>
+          <ion-row>
+            <ion-col size="5" class="spec-key">Uptime</ion-col>
+            <ion-col size="7">{{ sys.uptime_h }}h</ion-col>
+          </ion-row>
+          <ion-row>
+            <ion-col size="5" class="spec-key">Node</ion-col>
+            <ion-col size="7">{{ sys.node_version }}</ion-col>
+          </ion-row>
+        </ion-grid>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-subtitle>Services</ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-grid class="spec-grid">
+          <ion-row>
+            <ion-col size="5" class="spec-key">Flint MCP</ion-col>
+            <ion-col size="7" class="mono">{{ sys.flint_url }}</ion-col>
+          </ion-row>
+          <ion-row>
+            <ion-col size="5" class="spec-key">Vault</ion-col>
+            <ion-col size="7" class="mono vault-path">{{ sys.vault_path }}</ion-col>
+          </ion-row>
+        </ion-grid>
+      </ion-card-content>
+    </ion-card>
+
+    <!--- Quick nav -->
+    <div class="quick-nav">
+      <ion-button expand="block" (click)="goTo('/dashboard')">
+        <ion-icon slot="start" name="grid-outline"></ion-icon>
+        Mission Control
+      </ion-button>
+      <ion-button expand="block" fill="outline" (click)="goTo('/agent-tasks')">
+        <ion-icon slot="start" name="flash-outline"></ion-icon>
+        Agent Tasks
+      </ion-button>
+      <ion-button expand="block" fill="outline" (click)="goTo('/chat')">
+        <ion-icon slot="start" name="chatbubble-outline"></ion-icon>
+        Chat
+      </ion-button>
+    </div>
+  </ng-container>
+
+  <ng-container *ngIf="error()">
+    <ion-text color="danger">{{ error() }}</ion-text>
+  </ng-container>
+
+  <ion-skeleton-text *ngIf="!info() && !error()" animated style="height: 200px; border-radius: 12px;"></ion-skeleton-text>
+
+</ion-content>
+

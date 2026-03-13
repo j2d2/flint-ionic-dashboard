@@ -3,18 +3,19 @@
  */
 import { Router, Request, Response } from 'express';
 import * as flint from '../services/flintMcp';
-import { readFrontmatter } from '../services/vaultReader';
+import { readFrontmatter, readVaultDocBody } from '../services/vaultReader';
 import { AgentTaskPatch, NewTaskPayload } from '../types/AgentTask';
 
 export const tasksRouter = Router();
 
-// GET /api/tasks — list tasks (optionally filtered by status)
+// GET /api/tasks — list tasks with pagination (?status=, ?limit=, ?offset=)
 tasksRouter.get('/', async (req: Request, res: Response) => {
   try {
     const status = typeof req.query.status === 'string' ? req.query.status : undefined;
-    const limit = req.query.limit ? Number(req.query.limit) : 50;
-    const tasks = await flint.listTasks(status, limit);
-    res.json({ tasks, total: tasks.length });
+    const limit = req.query.limit ? Math.min(Number(req.query.limit), 200) : 50;
+    const offset = req.query.offset ? Math.max(Number(req.query.offset), 0) : 0;
+    const result = await flint.listTasksPaged(status, limit, offset);
+    res.json({ tasks: result.tasks, total: result.total, offset, limit });
   } catch (err) {
     res.status(500).json({ error: (err as Error).message });
   }
@@ -39,6 +40,25 @@ tasksRouter.get('/:id', async (req: Request, res: Response) => {
       return;
     }
     res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+// GET /api/tasks/:id/vault-doc — return vault doc body as markdown
+tasksRouter.get('/:id/vault-doc', async (req: Request, res: Response) => {
+  try {
+    const task = await flint.getTask(req.params.id);
+    if (!task) {
+      res.status(404).json({ error: `Task not found: ${req.params.id}` });
+      return;
+    }
+    if (!task.vault_note) {
+      res.status(404).json({ error: 'No vault_note on this task' });
+      return;
+    }
+    const markdown = readVaultDocBody(task.vault_note);
+    res.json({ task_id: task.id, vault_note: task.vault_note, markdown: markdown ?? '' });
   } catch (err) {
     res.status(500).json({ error: (err as Error).message });
   }

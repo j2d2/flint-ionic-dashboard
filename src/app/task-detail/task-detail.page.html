@@ -1,13 +1,15 @@
 <ion-header>
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/dashboard"></ion-back-button>
+      <ion-back-button defaultHref="/agent-tasks"></ion-back-button>
     </ion-buttons>
     <ion-title>Task Detail</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding" *ngIf="task() as currentTask; else notFound">
+
+  <!-- ─── Core info card ─── -->
   <ion-card>
     <ion-card-header>
       <ion-card-subtitle>{{ currentTask.task_type }} &middot; {{ currentTask.model ?? '&mdash;' }}</ion-card-subtitle>
@@ -16,44 +18,75 @@
     <ion-card-content>
       <ion-badge [color]="statusColor(currentTask.status)">{{ currentTask.status }}</ion-badge>
 
-      <ion-grid class="ion-margin-top">
+      <ion-grid class="ion-margin-top spec-grid">
         <ion-row>
-          <ion-col size="6"><strong>Created</strong></ion-col>
-          <ion-col size="6">{{ formatDate(currentTask.created_at) }}</ion-col>
+          <ion-col size="5" class="spec-key">Priority</ion-col>
+          <ion-col size="7">P{{ currentTask.priority }}</ion-col>
         </ion-row>
         <ion-row>
-          <ion-col size="6"><strong>Updated</strong></ion-col>
-          <ion-col size="6">{{ formatDate(currentTask.updated_at) }}</ion-col>
+          <ion-col size="5" class="spec-key">Created</ion-col>
+          <ion-col size="7">{{ formatDate(currentTask.created_at) }}</ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col size="5" class="spec-key">Updated</ion-col>
+          <ion-col size="7">{{ formatDate(currentTask.updated_at) }}</ion-col>
         </ion-row>
         <ion-row *ngIf="currentTask.vault_note">
-          <ion-col size="6"><strong>Vault Note</strong></ion-col>
-          <ion-col size="6">{{ currentTask.vault_note }}</ion-col>
+          <ion-col size="5" class="spec-key">Vault Note</ion-col>
+          <ion-col size="7" class="mono vault-path">{{ currentTask.vault_note }}</ion-col>
+        </ion-row>
+        <ion-row *ngIf="currentTask.tags">
+          <ion-col size="5" class="spec-key">Tags</ion-col>
+          <ion-col size="7">{{ currentTask.tags }}</ion-col>
         </ion-row>
       </ion-grid>
-
-      <ng-container *ngIf="frontmatterEntries().length > 0">
-        <h3 class="ion-margin-top">Frontmatter</h3>
-        <ion-list lines="none">
-          <ion-item *ngFor="let entry of frontmatterEntries()">
-            <ion-label><strong>{{ entry[0] }}</strong>: {{ entry[1] }}</ion-label>
-          </ion-item>
-        </ion-list>
-      </ng-container>
-
-      <ion-button
-        expand="block"
-        class="ion-margin-top"
-        [disabled]="isProcessing()"
-        (click)="processTask()"
-        *ngIf="!currentTask.review_due">
-        {{ isProcessing() ? 'Processing...' : 'Process Task' }}
-      </ion-button>
-
-      <ion-button expand="block" class="ion-margin-top" fill="outline" (click)="startNewThread()">
-        Chat / New Thread
-      </ion-button>
     </ion-card-content>
   </ion-card>
+
+  <!-- ─── Frontmatter card (shown when vault doc has frontmatter) ─── -->
+  <ion-card *ngIf="frontmatterEntries().length > 0">
+    <ion-card-header>
+      <ion-card-subtitle>Vault Doc — Frontmatter</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content class="ion-no-padding">
+      <ion-list lines="full" class="ion-no-padding">
+        <ion-item *ngFor="let entry of frontmatterEntries()">
+          <ion-label>
+            <p class="fm-key">{{ entry[0] }}</p>
+            <h3>{{ entry[1] }}</h3>
+          </ion-label>
+        </ion-item>
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- ─── Vault doc markdown (expandable) ─── -->
+  <ion-accordion-group *ngIf="vaultMarkdown()">
+    <ion-accordion value="vault-doc">
+      <ion-item slot="header" color="dark">
+        <ion-icon name="document-text-outline" slot="start"></ion-icon>
+        <ion-label>View Plan Doc</ion-label>
+      </ion-item>
+      <div slot="content" class="vault-doc-body">
+        <div [innerHTML]="vaultMarkdown() | markdownHtml" class="md-content"></div>
+      </div>
+    </ion-accordion>
+  </ion-accordion-group>
+
+  <!-- ─── Actions ─── -->
+  <ion-button
+    expand="block"
+    class="ion-margin-top"
+    [disabled]="isProcessing()"
+    (click)="processTask()"
+    *ngIf="!currentTask.review_due">
+    {{ isProcessing() ? 'Processing...' : 'Process Task' }}
+  </ion-button>
+
+  <ion-button expand="block" class="ion-margin-top" fill="outline" (click)="startNewThread()">
+    Chat / New Thread
+  </ion-button>
+
 </ion-content>
 
 <ng-template #notFound>

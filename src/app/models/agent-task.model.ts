@@ -22,6 +22,7 @@ export interface AgentTask {
   priority: number;
   model?: string;
   vault_note?: string;
+  tags?: string;
   output?: string;
   error?: string;
   created_at: string;

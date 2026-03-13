@@ -1,0 +1,11 @@
+.vault-ref {
+  font-size: 11px;
+  opacity: 0.6;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+
+  ion-icon { font-size: 12px; }
+}
+
+.priority-badge { margin-inline-end: 4px; }

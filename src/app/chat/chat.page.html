@@ -4,6 +4,16 @@
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
     <ion-title>Chat with Flint</ion-title>
+    <ion-select
+      slot="end"
+      [value]="selectedModel()"
+      (ionChange)="selectedModel.set($any($event.detail.value))"
+      interface="popover"
+      class="model-select"
+      aria-label="Model"
+    >
+      <ion-select-option *ngFor="let m of modelOptions" [value]="m.value">{{ m.label }}</ion-select-option>
+    </ion-select>
   </ion-toolbar>
 </ion-header>
 

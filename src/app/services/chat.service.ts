@@ -13,7 +13,7 @@ export interface ChatResponse {
 export class ChatService {
   private readonly http = inject(HttpClient);
 
-  chat(prompt: string): Observable<ChatResponse> {
-    return this.http.post<ChatResponse>('/api/chat', { prompt });
+  chat(prompt: string, model?: string): Observable<ChatResponse> {
+    return this.http.post<ChatResponse>('/api/chat', { prompt, model });
   }
 }

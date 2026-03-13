@@ -5,6 +5,7 @@ import { IonicModule, ModalController, ToastController } from '@ionic/angular';
 
 import { AgentTask, statusColor } from '../models/agent-task.model';
 import { NewThreadModalComponent } from '../new-thread/new-thread-modal.component';
+import { MarkdownPipe } from '../pipes/markdown.pipe';
 import { TaskService } from '../services/task.service';
 
 @Component({
@@ -12,13 +13,15 @@ import { TaskService } from '../services/task.service';
   templateUrl: './task-detail.page.html',
   styleUrls: ['./task-detail.page.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule],
+  imports: [CommonModule, IonicModule, MarkdownPipe],
   providers: [DatePipe],
 })
 export class TaskDetailPage implements OnInit {
   readonly task = signal<AgentTask | null>(null);
   readonly frontmatter = signal<Record<string, unknown> | null>(null);
+  readonly vaultMarkdown = signal<string | null>(null);
   readonly isProcessing = signal(false);
+  readonly vaultDocOpen = signal(false);
 
   readonly statusColor = statusColor;
 
@@ -32,9 +35,19 @@ export class TaskDetailPage implements OnInit {
     const taskId = this.route.snapshot.paramMap.get('id');
     if (!taskId) return;
 
-    this.taskService.getTask(taskId).subscribe((task) => this.task.set(task));
+    this.taskService.getTask(taskId).subscribe((task) => {
+      this.task.set(task);
+      // Load vault doc if available
+      if (task.vault_note) {
+        this.taskService.getVaultDoc(taskId).subscribe({
+          next: (r) => this.vaultMarkdown.set(r.markdown),
+          error: () => this.vaultMarkdown.set(null),
+        });
+      }
+    });
+
     this.taskService.getTaskFrontmatter(taskId).subscribe({
-      next: (fm) => this.frontmatter.set(fm),
+      next: (fm) => this.frontmatter.set((fm as any)?.frontmatter ?? fm),
       error: () => this.frontmatter.set(null),
     });
   }

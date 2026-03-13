@@ -10,6 +10,14 @@ interface Message {
   model?: string;
 }
 
+const MODEL_OPTIONS = [
+  { value: 'auto', label: 'Auto' },
+  { value: 'qwen3:8b', label: 'Qwen3 8B' },
+  { value: 'gemma3:4b', label: 'Gemma3 4B' },
+  { value: 'qwen2.5-coder:14b', label: 'Coder 14B' },
+  { value: 'claude-sonnet-4-6', label: 'Claude' },
+];
+
 @Component({
   selector: 'app-chat-page',
   templateUrl: './chat.page.html',
@@ -23,6 +31,8 @@ export class ChatPage {
   readonly messages = signal<Message[]>([]);
   readonly input = signal('');
   readonly isSending = signal(false);
+  readonly selectedModel = signal('auto');
+  readonly modelOptions = MODEL_OPTIONS;
 
   private readonly chatService = inject(ChatService);
 
@@ -34,7 +44,8 @@ export class ChatPage {
     this.input.set('');
     this.isSending.set(true);
 
-    this.chatService.chat(prompt).subscribe({
+    const model = this.selectedModel();
+    this.chatService.chat(prompt, model === 'auto' ? undefined : model).subscribe({
       next: (res: ChatResponse) => {
         this.messages.update((msgs) => [
           ...msgs,

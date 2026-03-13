@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 
@@ -13,10 +13,11 @@ import {
 export class TaskService {
   private readonly http = inject(HttpClient);
 
-  getTasks(): Observable<AgentTask[]> {
-    return this.http
-      .get<{ tasks: AgentTask[] }>('/api/tasks')
-      .pipe(map((r) => r.tasks));
+  getTasks(offset = 0, limit = 50): Observable<{ tasks: AgentTask[]; total: number }> {
+    const params = new HttpParams()
+      .set('offset', String(offset))
+      .set('limit', String(limit));
+    return this.http.get<{ tasks: AgentTask[]; total: number }>('/api/tasks', { params });
   }
 
   getTask(id: string): Observable<AgentTask> {
@@ -25,6 +26,12 @@ export class TaskService {
 
   getTaskFrontmatter(id: string): Observable<Record<string, unknown>> {
     return this.http.get<Record<string, unknown>>(`/api/tasks/${id}/frontmatter`);
+  }
+
+  getVaultDoc(id: string): Observable<{ task_id: string; vault_note: string; markdown: string }> {
+    return this.http.get<{ task_id: string; vault_note: string; markdown: string }>(
+      `/api/tasks/${id}/vault-doc`
+    );
   }
 
   getStats(): Observable<QueueStats> {
@@ -50,3 +57,4 @@ export class TaskService {
     return this.http.post<{ task_id: string }>(`/api/tasks/${id}/chat`, { message });
   }
 }
+

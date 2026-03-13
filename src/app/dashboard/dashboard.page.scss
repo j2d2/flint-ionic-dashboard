@@ -1,3 +1,93 @@
-ion-note {
-  white-space: nowrap;
+// ─── Mission Control: Kanban + List views ────────────────────────────────────
+
+.stats-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  padding: 6px 16px;
+  background: var(--ion-color-step-100, #1c1c1c);
+  border-bottom: 1px solid var(--ion-color-step-150, #222);
+  font-size: 12px;
+  letter-spacing: 0.3px;
+
+  .stat          { font-weight: 600; }
+  .stat--pending { color: var(--ion-color-warning); }
+  .stat--running { color: var(--ion-color-tertiary); }
+  .stat--done    { color: var(--ion-color-success); }
+  .stat--total   { color: var(--ion-color-medium); font-weight: 400; }
+  .stat-sep      { color: var(--ion-color-step-300, #555); }
 }
+
+.kanban-wrap {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+  padding: 12px;
+  height: calc(100dvh - 112px);
+  overflow-y: auto;
+  align-items: start;
+
+  @media (max-width: 599px) {
+    grid-template-columns: repeat(5, 82vw);
+    overflow-x: auto;
+    overflow-y: hidden;
+    height: calc(100dvh - 112px);
+    padding-bottom: 16px;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+.kanban-col {
+  background: var(--ion-color-step-50, #181818);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 180px;
+
+  .col-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: var(--ion-color-step-100, #222);
+    font-weight: 600;
+    font-size: 14px;
+
+    ion-icon { font-size: 16px; flex-shrink: 0; }
+    .col-title { flex: 1; }
+    .thread-count { font-size: 10px; padding: 2px 6px; border-radius: 8px; }
+  }
+
+  .col-body { flex: 1; padding: 8px; }
+
+  .empty-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 28px 12px 20px;
+    gap: 6px;
+    text-align: center;
+    color: var(--ion-color-medium);
+
+    p         { font-size: 13px; margin: 0; }
+    .empty-desc { font-size: 11px; opacity: 0.7; }
+    .empty-icon { font-size: 30px; opacity: 0.3; margin-bottom: 4px; }
+    ion-button { margin-top: 8px; }
+  }
+}
+
+.channel-list {
+  margin-bottom: 8px;
+
+  ion-list-header { display: flex; align-items: center; }
+  .ch-header-icon { margin-inline-end: 8px; font-size: 16px; }
+}
+
+.empty-list-item {
+  --min-height: 52px;
+  --padding-start: 16px;
+}
+
