@@ -6,6 +6,17 @@ ion-menu {
   --width: 280px;
 }
 
+// ─── Sidebar header — muted, not loud primary ───────────────────────────────
+ion-menu ion-header ion-toolbar {
+  --background: #12121a;
+  --color: rgba(255, 255, 255, 0.45);
+  --border-color: rgba(255, 255, 255, 0.07);
+  letter-spacing: 0.04em;
+  font-size: 0.9rem;
+}
+
+// ─── Footer ──────────────────────────────────────────────────────────────────
+
 ion-menu ion-footer ion-toolbar {
   --background: var(--ion-color-step-50, #111);
   --border-color: rgba(var(--ion-color-medium-rgb), 0.15);
@@ -18,53 +29,82 @@ ion-menu ion-footer ion-toolbar {
 
 .footer-version {
   font-size: 11px;
-  opacity: 0.55;
+  color: var(--ion-color-medium);
   margin-top: 1px;
 }
 
-// ─── Side-menu: Mission Control channel shortcuts ───────────────────────────
+// ─── Nav list (Agent Tasks, Chat) ────────────────────────────────────────────
+
+.nav-list {
+  margin-top: 0;
+  padding: 0;
+}
+
+// ─── Mission Control accordion ───────────────────────────────────────────────
 
 .menu-channels {
-  margin-top: 8px;
-  border-top: 1px solid rgba(var(--ion-color-medium-rgb), 0.15);
+  border-bottom: 1px solid rgba(var(--ion-color-medium-rgb), 0.12);
+  margin-bottom: 4px;
 
   &__header {
     display: flex;
+    align-items: stretch;
+  }
+
+  &__nav-part {
+    flex: 1;
+    display: flex;
+    align-items: stretch;
+    cursor: pointer;
+    min-width: 0;
+  }
+
+  &__title-row {
+    display: flex;
     align-items: center;
     gap: 10px;
-    padding: 10px 16px;
-    cursor: pointer;
-    user-select: none;
+    padding: 10px 0 10px 16px;
+    width: 100%;
     color: var(--ion-color-medium);
     font-size: 0.78rem;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     font-weight: 600;
+    user-select: none;
+    text-decoration: none;
     outline: none;
 
     ion-icon { font-size: 1rem; flex-shrink: 0; }
 
-    &:hover,
-    &:focus-visible { color: var(--ion-color-primary); }
+    &:hover { color: var(--ion-color-primary); }
   }
 
-  &__label {
-    flex: 1;
-  }
+  &__caret {
+    background: none;
+    border: none;
+    padding: 8px 14px;
+    color: var(--ion-color-medium);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    outline: none;
+    border-radius: 4px;
 
-  &__chevron {
-    font-size: 0.85rem;
-    transition: transform 0.18s ease;
+    ion-icon { font-size: 0.95rem; pointer-events: none; }
+
+    &:hover   { color: var(--ion-color-primary); }
+    &:focus-visible { box-shadow: 0 0 0 2px var(--ion-color-primary); }
   }
 
   &__list {
-    padding: 0 0 6px 0;
+    padding: 0 0 8px 0;
   }
 }
 
 .channel-item {
-  --padding-start: 24px;
-  --min-height: 42px;
+  --padding-start: 28px;
+  --min-height: 40px;
   font-size: 0.9rem;
 }
 
@@ -75,3 +115,61 @@ ion-menu ion-footer ion-toolbar {
   flex-shrink: 0;
   margin-inline-start: 4px;
 }
+
+// ─── Section headers (Hot Threads, Haiku) ────────────────────────────────────
+
+.menu-section {
+  margin-top: 4px;
+
+  &--last { margin-top: 0; }
+
+  &__label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px 2px;
+    color: var(--ion-color-medium);
+    font-size: 0.72rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    font-weight: 600;
+
+    span { flex: 1; }
+    ion-icon { font-size: 0.85rem; flex-shrink: 0; }
+  }
+
+  &__badge {
+    font-size: 10px;
+    padding: 2px 5px;
+    border-radius: 6px;
+  }
+
+  &__list { padding: 0; }
+}
+
+.hot-thread-item {
+  --padding-start: 20px;
+  --min-height: 36px;
+
+  .hot-thread-title {
+    font-size: 12px;
+    color: var(--ion-color-warning);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
+  }
+}
+
+.haiku-item {
+  --padding-start: 16px;
+  --min-height: 44px;
+  opacity: 0.45;
+}
+
+.soon-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+

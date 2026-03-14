@@ -4,12 +4,12 @@ import { Router, RouterModule } from '@angular/router';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 
-import { AgentTask, statusColor } from '../models/agent-task.model';
+import { AgentTask, parseTaskDate, statusColor } from '../models/agent-task.model';
 import { NewThreadModalComponent } from '../new-thread/new-thread-modal.component';
 import { SocketService } from '../services/socket.service';
 import { TaskService } from '../services/task.service';
 import { addIcons } from 'ionicons';
-import { addOutline, chatbubbleEllipsesOutline, documentOutline, documentTextOutline, flashOutline, gitBranchOutline, timeOutline, trendingUpOutline } from 'ionicons/icons';
+import { addOutline, chatbubbleEllipsesOutline, documentOutline, documentTextOutline, flashOutline, gitBranchOutline, searchOutline, timeOutline, trendingUpOutline } from 'ionicons/icons';
 
 const PAGE_SIZE = 50;
 
@@ -29,7 +29,9 @@ export class AgentTasksPage implements OnInit, OnDestroy {
   readonly filter = signal<'active' | 'all' | 'review'>(
     (localStorage.getItem('agent-tasks:filter') as 'active' | 'all' | 'review') ?? 'active'
   );
-  readonly sortBy = signal<'priority' | 'updated'>('priority');
+  readonly sortBy = signal<'priority' | 'updated'>('updated');
+  readonly searchOpen = signal(false);
+  readonly searchQuery = signal('');
 
   readonly sortLabel = computed(() => this.sortBy() === 'updated' ? 'Recent' : 'Priority');
   readonly reviewDueCount = computed(() => this.tasks().filter((t) => t.review_due === 1).length);
@@ -39,26 +41,35 @@ export class AgentTasksPage implements OnInit, OnDestroy {
 
   readonly filteredTasks = computed(() => {
     const f = this.filter();
-    const list =
+    const q = this.searchQuery().trim().toLowerCase();
+    let list =
       f === 'all' ? this.tasks() :
       f === 'review' ? this.tasks().filter((t) => t.review_due === 1) :
       this.tasks().filter((t) => t.status !== 'done');
+    if (q) {
+      list = list.filter((t) =>
+        t.title.toLowerCase().includes(q) ||
+        (t.task_type ?? '').toLowerCase().includes(q)
+      );
+    }
     if (this.sortBy() === 'updated') {
       return [...list].sort(
-        (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+        (a, b) => parseTaskDate(b.updated_at_iso ?? b.updated_at).getTime() -
+                  parseTaskDate(a.updated_at_iso ?? a.updated_at).getTime()
       );
     }
     // Default: ascending priority (P1 first), then newest-updated as tiebreaker
     return [...list].sort(
       (a, b) => a.priority - b.priority ||
-        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+        parseTaskDate(b.updated_at_iso ?? b.updated_at).getTime() -
+        parseTaskDate(a.updated_at_iso ?? a.updated_at).getTime()
     );
   });
 
   readonly statusColor = statusColor;
 
   constructor() {
-    addIcons({ documentTextOutline, addOutline, trendingUpOutline, timeOutline, flashOutline, gitBranchOutline, chatbubbleEllipsesOutline });
+    addIcons({ documentTextOutline, addOutline, searchOutline, trendingUpOutline, timeOutline, flashOutline, gitBranchOutline, chatbubbleEllipsesOutline });
   }
 
   priorityColor(p: number): string {
@@ -151,6 +162,11 @@ export class AgentTasksPage implements OnInit, OnDestroy {
     this.filter.set(v);
   }
 
+  toggleSearch(): void {
+    this.searchOpen.update((v) => !v);
+    if (!this.searchOpen()) this.searchQuery.set('');
+  }
+
   async openNewAgentTask(): Promise<void> {
     const modal = await this.modalController.create({
       component: NewThreadModalComponent,
@@ -188,8 +204,9 @@ export class AgentTasksPage implements OnInit, OnDestroy {
     void this.router.navigate(['/task', taskId]);
   }
 
-  formatDate(isoDate?: string): string {
-    if (!isoDate) return '-';
-    return this.datePipe.transform(isoDate, 'MMM d, h:mm a') ?? isoDate;
+  formatDate(ts?: string | number): string {
+    if (!ts) return '-';
+    const d = parseTaskDate(ts);
+    return this.datePipe.transform(d, 'MMM d, h:mm a') ?? String(ts);
   }
 }

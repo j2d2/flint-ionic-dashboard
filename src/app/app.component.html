@@ -2,40 +2,30 @@
   <ion-split-pane contentId="main-content" when="md">
     <ion-menu contentId="main-content" type="overlay">
       <ion-header>
-        <ion-toolbar color="primary">
+        <ion-toolbar>
           <ion-title>Flint Dashboard</ion-title>
         </ion-toolbar>
       </ion-header>
 
       <ion-content>
-        <ion-list>
-          @for (item of appPages; track item.url) {
-            <ion-menu-toggle autoHide="false">
-              <ion-item [routerLink]="item.url" routerDirection="root" lines="full">
-                <ion-icon slot="start" [name]="item.icon"></ion-icon>
-                <ion-label>{{ item.title }}</ion-label>
-              </ion-item>
-            </ion-menu-toggle>
-          }
-        </ion-list>
 
-        <!-- Mission Control channel shortcuts -->
+        <!-- 1. Mission Control accordion -->
         <div class="menu-channels">
-          <div
-            class="menu-channels__header"
-            (click)="toggleChannels()"
-            (keyup.enter)="toggleChannels()"
-            (keyup.space)="toggleChannels()"
-            role="button"
-            tabindex="0"
-            [attr.aria-expanded]="channelsOpen"
-          >
-            <ion-icon name="grid-outline"></ion-icon>
-            <span class="menu-channels__label">Mission Control</span>
-            <ion-icon
-              [name]="channelsOpen ? 'chevron-down-outline' : 'chevron-forward-outline'"
-              class="menu-channels__chevron"
-            ></ion-icon>
+          <div class="menu-channels__header">
+            <ion-menu-toggle autoHide="false" class="menu-channels__nav-part">
+              <div [routerLink]="['/dashboard']" routerDirection="root" class="menu-channels__title-row">
+                <ion-icon name="grid-outline"></ion-icon>
+                <span class="menu-channels__label">Mission Control</span>
+              </div>
+            </ion-menu-toggle>
+            <button
+              class="menu-channels__caret"
+              (click)="toggleChannels($event)"
+              [attr.aria-expanded]="channelsOpen"
+              aria-label="Toggle channel list"
+            >
+              <ion-icon [name]="channelsOpen ? 'chevron-down-outline' : 'chevron-forward-outline'"></ion-icon>
+            </button>
           </div>
 
           @if (channelsOpen) {
@@ -63,6 +53,58 @@
             </ion-list>
           }
         </div>
+
+        <!-- 2. Agent Tasks + Chat -->
+        <ion-list class="nav-list">
+          @for (item of appPages; track item.url) {
+            <ion-menu-toggle autoHide="false">
+              <ion-item [routerLink]="item.url" routerDirection="root" lines="full">
+                <ion-icon slot="start" [name]="item.icon"></ion-icon>
+                <ion-label>{{ item.title }}</ion-label>
+              </ion-item>
+            </ion-menu-toggle>
+          }
+        </ion-list>
+
+        <!-- 3. Hot Threads (review tasks) -->
+        @if (reviewTasks().length > 0) {
+          <div class="menu-section">
+            <div class="menu-section__label">
+              <ion-icon name="git-branch-outline"></ion-icon>
+              <span>Hot Threads</span>
+              <ion-badge color="warning" class="menu-section__badge">{{ reviewTasks().length }}</ion-badge>
+            </div>
+            <ion-list class="menu-section__list">
+              @for (t of reviewTasks(); track t.id) {
+                <ion-menu-toggle autoHide="false">
+                  <ion-item
+                    [routerLink]="['/task', t.id]"
+                    routerDirection="forward"
+                    button
+                    lines="none"
+                    class="hot-thread-item"
+                  >
+                    <ion-label>
+                      <p class="hot-thread-title">{{ t.title }}</p>
+                    </ion-label>
+                  </ion-item>
+                </ion-menu-toggle>
+              }
+            </ion-list>
+          </div>
+        }
+
+        <!-- 4. Haiku Leaderboard (coming soon) -->
+        <div class="menu-section menu-section--last">
+          <ion-list>
+            <ion-item lines="none" disabled class="haiku-item">
+              <ion-icon slot="start" name="trophy-outline"></ion-icon>
+              <ion-label>Haiku Leaderboard</ion-label>
+              <ion-badge slot="end" color="medium" class="soon-badge">soon</ion-badge>
+            </ion-item>
+          </ion-list>
+        </div>
+
       </ion-content>
 
       <ion-footer>

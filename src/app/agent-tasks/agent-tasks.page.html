@@ -1,15 +1,30 @@
 <ion-header>
-  <ion-toolbar color="dark">
+  <ion-toolbar>
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
     <ion-title>Agent Tasks</ion-title>
     <ion-buttons slot="end">
+      <ion-button (click)="toggleSearch()" [color]="searchOpen() ? 'primary' : ''" aria-label="Search tasks">
+        <ion-icon slot="icon-only" name="search-outline"></ion-icon>
+      </ion-button>
       <ion-button id="quick-add-trigger" aria-label="New">
         <ion-icon slot="icon-only" name="add-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
+  @if (searchOpen()) {
+  <ion-toolbar>
+    <ion-searchbar
+      [value]="searchQuery()"
+      (ionInput)="searchQuery.set($any($event.detail.value) ?? '')"
+      placeholder="Search tasks…"
+      showCancelButton="always"
+      (ionCancel)="toggleSearch()"
+      animated>
+    </ion-searchbar>
+  </ion-toolbar>
+  }
   <ion-toolbar>
     <ion-segment [value]="filter()" (ionChange)="onFilterChange($any($event.detail.value))">
       <ion-segment-button value="active">

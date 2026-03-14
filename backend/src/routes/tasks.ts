@@ -98,7 +98,9 @@ tasksRouter.post('/create', async (req: Request, res: Response) => {
       review_due: payload.review_due ?? false,
     };
     const result = await flint.createTask(clean);
-    res.status(201).json(result);
+    // Fetch the full task record so the frontend has a complete AgentTask object
+    const task = await flint.getTask(result.task_id);
+    res.status(201).json(task ?? result);
   } catch (err) {
     res.status(500).json({ error: (err as Error).message });
   }

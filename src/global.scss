@@ -32,9 +32,9 @@
  * https://ionicframework.com/docs/theming/dark-mode
  */
 
-/* @import "@ionic/angular/css/palettes/dark.always.css"; */
+@import "@ionic/angular/css/palettes/dark.always.css";
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
-@import "@ionic/angular/css/palettes/dark.system.css";
+/* @import "@ionic/angular/css/palettes/dark.system.css"; */
 
 // Fix sub-label <p> text (e.g. channel description) in popover items — hard to read in dark mode
 ion-popover ion-label p {
@@ -45,4 +45,11 @@ ion-popover ion-label p {
 // Keep disabled popover items readable
 ion-popover ion-item[disabled] {
   opacity: 0.45;
+}
+
+// Dark page headers — consistent across all pages
+ion-header ion-toolbar {
+  --background: #10101a;
+  --color: rgba(255, 255, 255, 0.85);
+  --border-color: rgba(255, 255, 255, 0.06);
 }

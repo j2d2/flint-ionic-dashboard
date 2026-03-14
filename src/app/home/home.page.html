@@ -1,5 +1,5 @@
 <ion-header>
-  <ion-toolbar color="dark">
+  <ion-toolbar>
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
@@ -23,6 +23,22 @@
         <ion-label>{{ sys.tier }}</ion-label>
       </ion-chip>
       <p class="tier-label">{{ sys.tier_label }}</p>
+    </div>
+
+     <!--- Quick nav -->
+    <div class="quick-nav">
+      <ion-button fill="outline" (click)="goTo('/dashboard')">
+        <ion-icon slot="start" name="grid-outline"></ion-icon>
+        Mission Control
+      </ion-button>
+      <ion-button fill="outline" (click)="goTo('/agent-tasks')">
+        <ion-icon slot="start" name="flash-outline"></ion-icon>
+        Agent Tasks
+      </ion-button>
+      <ion-button fill="outline" (click)="goTo('/chat')">
+        <ion-icon slot="start" name="chatbubble-outline"></ion-icon>
+        Chat
+      </ion-button>
     </div>
 
     <ion-card>
@@ -74,21 +90,6 @@
       </ion-card-content>
     </ion-card>
 
-    <!--- Quick nav -->
-    <div class="quick-nav">
-      <ion-button expand="block" (click)="goTo('/dashboard')">
-        <ion-icon slot="start" name="grid-outline"></ion-icon>
-        Mission Control
-      </ion-button>
-      <ion-button expand="block" fill="outline" (click)="goTo('/agent-tasks')">
-        <ion-icon slot="start" name="flash-outline"></ion-icon>
-        Agent Tasks
-      </ion-button>
-      <ion-button expand="block" fill="outline" (click)="goTo('/chat')">
-        <ion-icon slot="start" name="chatbubble-outline"></ion-icon>
-        Chat
-      </ion-button>
-    </div>
   </ng-container>
 
   <ng-container *ngIf="error()">

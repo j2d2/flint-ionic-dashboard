@@ -21,7 +21,9 @@ export class TaskService {
   }
 
   getTask(id: string): Observable<AgentTask> {
-    return this.http.get<AgentTask>(`/api/tasks/${id}`);
+    return this.http.get<{ task: AgentTask } | AgentTask>(`/api/tasks/${id}`).pipe(
+      map((r) => ('task' in r && r.task ? r.task : r as AgentTask))
+    );
   }
 
   getTaskFrontmatter(id: string): Observable<Record<string, unknown>> {

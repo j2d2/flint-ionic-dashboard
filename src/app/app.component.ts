@@ -1,5 +1,5 @@
-import { Component, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 import {
   IonApp,
   IonSplitPane,
@@ -15,6 +15,7 @@ import {
   IonLabel,
   IonRouterOutlet,
   IonFooter,
+  IonBadge,
 } from '@ionic/angular/standalone';
 import { environment } from '../environments/environment';
 import { addIcons } from 'ionicons';
@@ -38,10 +39,13 @@ import {
   sendOutline,
   serverOutline,
   telescopeOutline,
+  trophyOutline,
 } from 'ionicons/icons';
 
+import { AgentTask } from './models/agent-task.model';
 import { Channel, DEFAULT_CHANNELS } from './models/channel.model';
 import { ChannelService } from './services/channel.service';
+import { TaskService } from './services/task.service';
 
 @Component({
   selector: 'app-root',
@@ -64,20 +68,23 @@ import { ChannelService } from './services/channel.service';
     IonLabel,
     IonRouterOutlet,
     IonFooter,
+    IonBadge,
   ],
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   readonly appPages = [
-    { title: 'Mission Control',  url: '/dashboard',   icon: 'grid-outline'          },
-    { title: 'Agent Tasks',      url: '/agent-tasks', icon: 'flash-outline'         },
-    { title: 'Chat',             url: '/chat',        icon: 'chatbubble-outline'    },
+    { title: 'Agent Tasks', url: '/agent-tasks', icon: 'flash-outline' },
+    { title: 'Chat',        url: '/chat',        icon: 'chatbubble-outline' },
   ];
 
   readonly channels: Channel[] = DEFAULT_CHANNELS;
-  channelsOpen = false;
+  channelsOpen = true;
   readonly version = environment.version;
+  readonly reviewTasks = signal<AgentTask[]>([]);
 
   private readonly channelService = inject(ChannelService);
+  private readonly taskService = inject(TaskService);
+  private readonly router = inject(Router);
 
   constructor() {
     addIcons({
@@ -100,10 +107,22 @@ export class AppComponent {
       serverOutline,
       sendOutline,
       telescopeOutline,
+      trophyOutline,
     });
   }
 
-  toggleChannels(): void {
+  ngOnInit(): void {
+    this.loadReviewTasks();
+  }
+
+  loadReviewTasks(): void {
+    this.taskService.getTasks(0, 100).subscribe({
+      next: ({ tasks }) => this.reviewTasks.set(tasks.filter((t) => t.review_due === 1)),
+    });
+  }
+
+  toggleChannels(event?: Event): void {
+    event?.stopPropagation();
     this.channelsOpen = !this.channelsOpen;
   }
 

@@ -3,7 +3,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { IonicModule, ModalController, ToastController } from '@ionic/angular';
 
-import { AgentTask, statusColor } from '../models/agent-task.model';
+import { AgentTask, parseTaskDate, statusColor } from '../models/agent-task.model';
 import { NewThreadModalComponent } from '../new-thread/new-thread-modal.component';
 import { MarkdownPipe } from '../pipes/markdown.pipe';
 import { TaskService } from '../services/task.service';
@@ -89,9 +89,10 @@ export class TaskDetailPage implements OnInit {
     await modal.present();
   }
 
-  formatDate(isoDate?: string): string {
-    if (!isoDate) return '-';
-    return this.datePipe.transform(isoDate, 'MMM d, h:mm a') ?? isoDate;
+  formatDate(ts?: string | number): string {
+    if (!ts) return '-';
+    const d = parseTaskDate(ts);
+    return this.datePipe.transform(d, 'MMM d, h:mm a') ?? String(ts);
   }
 
   frontmatterEntries(): [string, unknown][] {
