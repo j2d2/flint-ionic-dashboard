@@ -1,15 +1,16 @@
 /** Statuses from the real tasks.db — matches backend AgentTask */
-export type AgentTaskStatus = 'pending' | 'running' | 'done' | 'failed' | 'blocked';
+export type AgentTaskStatus = 'pending' | 'running' | 'in_review' | 'done' | 'failed' | 'blocked';
 
 /** Maps backend AgentTaskStatus → Ionic color */
-export function statusColor(status: AgentTaskStatus): 'warning' | 'medium' | 'danger' | 'success' {
+export function statusColor(status: AgentTaskStatus): 'warning' | 'medium' | 'danger' | 'success' | 'tertiary' {
   switch (status) {
-    case 'running':  return 'warning';
-    case 'pending':  return 'medium';
-    case 'done':     return 'success';
-    case 'failed':   return 'danger';
-    case 'blocked':  return 'danger';
-    default:         return 'medium';
+    case 'running':   return 'warning';
+    case 'pending':   return 'medium';
+    case 'in_review': return 'tertiary';
+    case 'done':      return 'success';
+    case 'failed':    return 'danger';
+    case 'blocked':   return 'danger';
+    default:          return 'medium';
   }
 }
 
@@ -47,7 +48,7 @@ export function parseTaskDate(ts?: string | number): Date {
 export interface AgentTaskPatch {
   title?: string;
   description?: string;
-  status?: 'pending' | 'running' | 'blocked';
+  status?: 'pending' | 'running' | 'in_review' | 'blocked';
   priority?: number;
   vault_note?: string;
 }

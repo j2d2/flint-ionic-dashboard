@@ -66,8 +66,26 @@ export class TaskService {
     );
   }
 
+  /** Move agent_task to in_review — required before finalization. */
+  submitForReview(id: string): Observable<AgentTask> {
+    return this.http.post<AgentTask>(`/api/tasks/${id}/submit-review`, {});
+  }
+
+  /** Mark agent_task done; cascades done to all session_task children. */
+  finalizeTask(id: string, output?: string): Observable<{ task_id: string; status: string; cascaded_children: number; task?: AgentTask }> {
+    return this.http.post<{ task_id: string; status: string; cascaded_children: number; task?: AgentTask }>(
+      `/api/tasks/${id}/finalize`,
+      { output }
+    );
+  }
+
   sendChat(id: string, message: string): Observable<{ task_id: string }> {
     return this.http.post<{ task_id: string }>(`/api/tasks/${id}/chat`, { message });
+  }
+
+  /** Creates a persisted session_task Thread under the parent task. */
+  startThread(taskId: string, title?: string): Observable<AgentTask> {
+    return this.http.post<AgentTask>(`/api/tasks/${taskId}/threads`, { title });
   }
 
   getTaskHaiku(id: string): Observable<{ haiku: HaikuEntry | null }> {

@@ -97,15 +97,50 @@
     {{ isProcessing() ? 'Processing...' : 'Process Task' }}
   </ion-button>
 
-  <ion-button expand="block" class="ion-margin-top" fill="outline" (click)="startThread()">
-    <ion-icon slot="start" name="chatbubble-outline"></ion-icon>
-    Open Chat
+  <!-- Submit for Review: visible while task is not yet in_review or done/failed -->
+  <ion-button
+    expand="block"
+    color="tertiary"
+    class="ion-margin-top"
+    [disabled]="isSubmittingReview()"
+    (click)="submitForReview()"
+    *ngIf="currentTask.status !== 'in_review' && currentTask.status !== 'done' && currentTask.status !== 'failed'">
+    {{ isSubmittingReview() ? 'Submitting...' : 'Submit for Review' }}
   </ion-button>
 
-  <!-- ─── Session threads ─── -->
+  <!-- Finalize: only visible when in_review -->
+  <ion-button
+    expand="block"
+    color="success"
+    class="ion-margin-top"
+    [disabled]="isFinalizing()"
+    (click)="finalizeTask()"
+    *ngIf="currentTask.status === 'in_review'">
+    {{ isFinalizing() ? 'Finalizing...' : 'Finalize (Mark Done)' }}
+  </ion-button>
+
+  <!-- Start Thread = persisted session_task; Chat = ephemeral (no DB record) -->
+  <ion-grid class="action-row ion-margin-top">
+    <ion-row>
+      <ion-col size="7">
+        <ion-button expand="block" (click)="startThread()">
+          <ion-icon slot="start" name="git-branch-outline"></ion-icon>
+          Start Thread
+        </ion-button>
+      </ion-col>
+      <ion-col size="5">
+        <ion-button expand="block" fill="outline" (click)="openChat()">
+          <ion-icon slot="start" name="chatbubble-outline"></ion-icon>
+          Chat
+        </ion-button>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <!-- ─── Threads (persisted session_tasks) ─── -->
   <ion-card *ngIf="sessionTasks().length > 0" class="ion-margin-top">
     <ion-card-header>
-      <ion-card-subtitle>Sessions ({{ sessionTasks().length }})</ion-card-subtitle>
+      <ion-card-subtitle>Threads ({{ sessionTasks().length }})</ion-card-subtitle>
     </ion-card-header>
     <ion-card-content class="ion-no-padding">
       <ion-list lines="full" class="ion-no-padding">

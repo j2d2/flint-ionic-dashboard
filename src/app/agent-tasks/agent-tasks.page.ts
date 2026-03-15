@@ -1,5 +1,5 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
@@ -18,6 +18,7 @@ const PAGE_SIZE = 200;
   templateUrl: './agent-tasks.page.html',
   styleUrls: ['./agent-tasks.page.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, RouterModule, IonicModule],
   providers: [DatePipe],
 })
@@ -34,7 +35,7 @@ export class AgentTasksPage implements OnInit, OnDestroy {
   readonly searchQuery = signal('');
 
   readonly sortLabel = computed(() => this.sortBy() === 'updated' ? 'Recent' : 'Priority');
-  readonly reviewDueCount = computed(() => this.tasks().filter((t) => t.review_due === 1).length);
+  readonly reviewDueCount = computed(() => this.tasks().filter((t) => t.status === 'in_review' || t.review_due === 1).length);
 
   private offset = 0;
   private allLoaded = false;
@@ -44,7 +45,7 @@ export class AgentTasksPage implements OnInit, OnDestroy {
     const q = this.searchQuery().trim().toLowerCase();
     let list =
       f === 'all' ? this.tasks() :
-      f === 'review' ? this.tasks().filter((t) => t.review_due === 1) :
+      f === 'review' ? this.tasks().filter((t) => t.status === 'in_review' || t.review_due === 1) :
       this.tasks().filter((t) => t.status !== 'done');
     if (q) {
       list = list.filter((t) =>
@@ -52,17 +53,17 @@ export class AgentTasksPage implements OnInit, OnDestroy {
         (t.task_type ?? '').toLowerCase().includes(q)
       );
     }
+    // Pre-compute timestamps once per item so parseTaskDate() is called O(n)
+    // rather than O(n log n) times inside the comparator.
+    const tsMap = new Map(
+      list.map((t) => [t.id, parseTaskDate(t.updated_at_iso ?? t.updated_at).getTime()])
+    );
     if (this.sortBy() === 'updated') {
-      return [...list].sort(
-        (a, b) => parseTaskDate(b.updated_at_iso ?? b.updated_at).getTime() -
-                  parseTaskDate(a.updated_at_iso ?? a.updated_at).getTime()
-      );
+      return [...list].sort((a, b) => tsMap.get(b.id)! - tsMap.get(a.id)!);
     }
     // Default: ascending priority (P1 first), then newest-updated as tiebreaker
     return [...list].sort(
-      (a, b) => a.priority - b.priority ||
-        parseTaskDate(b.updated_at_iso ?? b.updated_at).getTime() -
-        parseTaskDate(a.updated_at_iso ?? a.updated_at).getTime()
+      (a, b) => a.priority - b.priority || tsMap.get(b.id)! - tsMap.get(a.id)!
     );
   });
 

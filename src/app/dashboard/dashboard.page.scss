@@ -24,7 +24,8 @@
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 12px;
   padding: 12px;
-  height: calc(100dvh - 112px);
+  // height fills ion-content (which already accounts for header + stats bar)
+  height: 100%;
   overflow-y: auto;
   align-items: start;
 
@@ -32,7 +33,7 @@
     grid-template-columns: repeat(5, 82vw);
     overflow-x: auto;
     overflow-y: hidden;
-    height: calc(100dvh - 112px);
+    height: 100%;
     padding-bottom: 16px;
     -webkit-overflow-scrolling: touch;
   }

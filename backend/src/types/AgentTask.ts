@@ -10,7 +10,7 @@ export interface AgentTask {
   id: string;
   title: string;
   description?: string;
-  status: 'pending' | 'running' | 'done' | 'failed' | 'blocked';
+  status: 'pending' | 'running' | 'in_review' | 'done' | 'failed' | 'blocked';
   priority: number;             // 1 (low) – 5 (urgent)
   task_type: string;            // fast | standard | deep | code | agent_task | session_task | …
   tags?: string;                // comma-separated
@@ -36,7 +36,7 @@ export interface AgentTask {
 export interface AgentTaskPatch {
   title?: string;
   description?: string;
-  status?: 'pending' | 'running' | 'blocked';  // done/failed require update_task_status
+  status?: 'pending' | 'running' | 'in_review' | 'blocked';  // done/failed require update_task_status
   priority?: number;
   task_type?: string;
   tags?: string;

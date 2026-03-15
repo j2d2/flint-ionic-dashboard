@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -16,13 +16,14 @@ import { TaskService } from '../services/task.service';
   templateUrl: './dashboard.page.html',
   styleUrls: ['./dashboard.page.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, RouterModule, IonicModule],
 })
 export class DashboardPage implements OnInit {
   readonly channels: Channel[] = DEFAULT_CHANNELS;
   readonly view = signal<'kanban' | 'list'>('kanban');
   readonly stats = signal<QueueStats | null>(null);
-  readonly tasksByChannel = signal<Record<string, AgentTask[]>>({});
+  readonly tasksByChannel = signal<Record<string, AgentTask[] | undefined>>({});
   readonly statusColor = statusColor;
 
   private readonly router = inject(Router);

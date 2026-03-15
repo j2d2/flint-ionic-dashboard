@@ -26,6 +26,7 @@ const ALLOWED_TOOLS = new Set([
   'add_session_task',
   'list_session_tasks',
   'update_task_metadata',
+  'update_task_status',
   'get_pending_approvals',
   'bulk_approve',
   'flush_pending_writes',
@@ -136,6 +137,15 @@ export async function patchTask(id: string, patch: AgentTaskPatch): Promise<{ ta
     updated: boolean;
     fields: string[];
   };
+}
+
+export async function updateTaskStatus(
+  id: string,
+  status: 'done' | 'failed',
+  output?: string,
+  force = false,
+): Promise<{ task_id: string; status: string; updated: boolean; cascaded_children: number } | { error: string; blocked?: boolean }> {
+  return (await callTool('update_task_status', { task_id: id, status, output, force })) as ReturnType<typeof updateTaskStatus>;
 }
 
 export async function processTask(id: string): Promise<{

@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import {
   IonApp,
@@ -45,6 +46,7 @@ import {
 import { AgentTask } from './models/agent-task.model';
 import { Channel, DEFAULT_CHANNELS } from './models/channel.model';
 import { ChannelService } from './services/channel.service';
+import { SocketService } from './services/socket.service';
 import { TaskService } from './services/task.service';
 
 @Component({
@@ -52,6 +54,7 @@ import { TaskService } from './services/task.service';
   templateUrl: 'app.component.html',
   styleUrls: ['app.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RouterLink,
     IonApp,
@@ -84,6 +87,8 @@ export class AppComponent implements OnInit {
 
   private readonly channelService = inject(ChannelService);
   private readonly taskService = inject(TaskService);
+  private readonly socketService = inject(SocketService);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
 
   constructor() {
@@ -113,6 +118,16 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadReviewTasks();
+    this.socketService.connect();
+    // Keep Hot Threads sidebar current without requiring a page reload.
+    this.socketService.onTaskUpdate()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((updated) => {
+        this.reviewTasks.update((list) => {
+          const filtered = list.filter((t) => t.id !== updated.id);
+          return updated.review_due === 1 ? [updated, ...filtered] : filtered;
+        });
+      });
   }
 
   loadReviewTasks(): void {

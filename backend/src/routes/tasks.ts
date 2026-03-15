@@ -192,6 +192,30 @@ tasksRouter.post('/:id/process', async (req: Request, res: Response) => {
   }
 });
 
+// POST /api/tasks/:id/threads — create a persisted Thread (session_task) under a parent agent_task.
+// "Thread" = intentional work session, saved to DB with session_task_id + parent_task_id.
+// Distinct from /chat which is ephemeral (no session_task created for that flow).
+tasksRouter.post('/:id/threads', async (req: Request, res: Response) => {
+  try {
+    const parent = await flint.getTask(req.params.id);
+    if (!parent) {
+      res.status(404).json({ error: `Task not found: ${req.params.id}` });
+      return;
+    }
+    const { title } = req.body as { title?: string };
+    const defaultTitle = `Thread — ${new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}`;
+    const result = await flint.addSessionTask(
+      req.params.id,
+      (title?.trim() || defaultTitle),
+      `Work session on: ${parent.title}`,
+    );
+    const task = await flint.getTask(result.task_id);
+    res.status(201).json(task ?? result);
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
 // POST /api/tasks/:id/chat — add a session_task (chat message) under parent
 tasksRouter.post('/:id/chat', async (req: Request, res: Response) => {
   try {
@@ -222,6 +246,39 @@ tasksRouter.post('/:id/plan', async (req: Request, res: Response) => {
       return;
     }
     res.status(201).json(result);
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+// POST /api/tasks/:id/submit-review — move agent_task to in_review (ready for finalization).
+// A task must be in_review before it can be marked done.
+tasksRouter.post('/:id/submit-review', async (req: Request, res: Response) => {
+  try {
+    const result = await flint.patchTask(req.params.id, { status: 'in_review' } as AgentTaskPatch);
+    if ('error' in result) {
+      res.status(400).json(result);
+      return;
+    }
+    const task = await flint.getTask(req.params.id);
+    res.json(task ?? result);
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+// POST /api/tasks/:id/finalize — mark agent_task done; cascades done to all session_tasks.
+// Requires the task to be in_review first (enforced by update_task_status in Flint).
+tasksRouter.post('/:id/finalize', async (req: Request, res: Response) => {
+  try {
+    const { output } = req.body as { output?: string };
+    const result = await flint.updateTaskStatus(req.params.id, 'done', output);
+    if ('error' in result) {
+      res.status(400).json(result);
+      return;
+    }
+    const task = await flint.getTask(req.params.id);
+    res.json({ ...result, task: task ?? undefined });
   } catch (err) {
     res.status(500).json({ error: (err as Error).message });
   }

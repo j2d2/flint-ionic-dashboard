@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, OnInit, ViewChild, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -26,6 +26,7 @@ const MODEL_OPTIONS = [
   templateUrl: './chat.page.html',
   styleUrls: ['./chat.page.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, IonicModule, RouterModule],
 })
 export class ChatPage implements OnInit {
@@ -36,7 +37,8 @@ export class ChatPage implements OnInit {
   readonly isSending = signal(false);
   readonly selectedModel = signal('auto');
   readonly modelOptions = MODEL_OPTIONS;
-  readonly taskContext = signal<{ taskId?: string; taskTitle?: string; vaultMarkdown?: string } | null>(null);
+  readonly taskContext = signal<{ taskId?: string; taskTitle?: string; vaultMarkdown?: string; sessionTaskId?: string; sessionTaskTitle?: string } | null>(null);
+  readonly isThread = signal(false);
   private vaultContextText = '';
 
   private readonly chatService = inject(ChatService);
@@ -46,14 +48,15 @@ export class ChatPage implements OnInit {
   }
 
   ngOnInit(): void {
-    const state = (window.history.state ?? {}) as { taskId?: string; taskTitle?: string; vaultMarkdown?: string };
+    const state = (window.history.state ?? {}) as { taskId?: string; taskTitle?: string; vaultMarkdown?: string; sessionTaskId?: string; sessionTaskTitle?: string };
     if (state?.taskId) {
       this.taskContext.set(state);
+      this.isThread.set(!!state.sessionTaskId);
       this.vaultContextText = state.vaultMarkdown ?? '';
-      this.messages.set([{
-        role: 'flint',
-        text: `Ready to work on: "${state.taskTitle}". What would you like to do?`,
-      }]);
+      const greeting = state.sessionTaskId
+        ? `Thread started: "${state.sessionTaskTitle ?? state.taskTitle}". This session is saved under the task.`
+        : `Chat context: "${state.taskTitle}". This session is ephemeral — not saved to the task.`;
+      this.messages.set([{ role: 'flint', text: greeting }]);
     }
   }
 
