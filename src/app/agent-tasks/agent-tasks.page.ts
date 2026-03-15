@@ -11,7 +11,7 @@ import { TaskService } from '../services/task.service';
 import { addIcons } from 'ionicons';
 import { addOutline, chatbubbleEllipsesOutline, documentOutline, documentTextOutline, flashOutline, gitBranchOutline, searchOutline, timeOutline, trendingUpOutline } from 'ionicons/icons';
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 200;
 
 @Component({
   selector: 'app-agent-tasks-page',

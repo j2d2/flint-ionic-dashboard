@@ -18,12 +18,14 @@ import { approvalsRouter } from './routes/approvals';
 import { threadsRouter } from './routes/threads';
 import { chatRouter } from './routes/chat';
 import { systemRouter } from './routes/system';
+import { haikusRouter } from './routes/haikus';
+import { vaultRouter } from './routes/vault';
 import { startTailing, threadEvents } from './services/toolCallTailer';
 import * as flint from './services/flintMcp';
 import { AgentTask } from './types/AgentTask';
 
 const PORT = parseInt(process.env.PORT ?? '18310', 10);
-const CORS_ORIGINS = (process.env.CORS_ORIGINS ?? 'http://localhost:4200,capacitor://localhost')
+const CORS_ORIGINS = (process.env.CORS_ORIGINS ?? 'http://localhost:4200,http://localhost:18330,capacitor://localhost')
   .split(',')
   .map(o => o.trim());
 
@@ -63,6 +65,8 @@ app.use('/api/approvals', approvalsRouter);
 app.use('/api/threads', threadsRouter);
 app.use('/api/chat', chatRouter);
 app.use('/api/system', systemRouter);
+app.use('/api/haikus', haikusRouter);
+app.use('/api/vault', vaultRouter);
 
 app.get('/api/health', (_req, res) => {
   res.json({

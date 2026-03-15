@@ -1,6 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, ViewChild, inject, signal } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild, inject, signal } from '@angular/core';
+import { RouterModule } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
+import { addIcons } from 'ionicons';
+import { arrowBackOutline, flashOutline } from 'ionicons/icons';
 
 import { ChatResponse, ChatService } from '../services/chat.service';
 
@@ -23,9 +26,9 @@ const MODEL_OPTIONS = [
   templateUrl: './chat.page.html',
   styleUrls: ['./chat.page.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule],
+  imports: [CommonModule, IonicModule, RouterModule],
 })
-export class ChatPage {
+export class ChatPage implements OnInit {
   @ViewChild('msgList') private msgList!: ElementRef<HTMLIonContentElement>;
 
   readonly messages = signal<Message[]>([]);
@@ -33,8 +36,26 @@ export class ChatPage {
   readonly isSending = signal(false);
   readonly selectedModel = signal('auto');
   readonly modelOptions = MODEL_OPTIONS;
+  readonly taskContext = signal<{ taskId?: string; taskTitle?: string; vaultMarkdown?: string } | null>(null);
+  private vaultContextText = '';
 
   private readonly chatService = inject(ChatService);
+
+  constructor() {
+    addIcons({ flashOutline, arrowBackOutline });
+  }
+
+  ngOnInit(): void {
+    const state = (window.history.state ?? {}) as { taskId?: string; taskTitle?: string; vaultMarkdown?: string };
+    if (state?.taskId) {
+      this.taskContext.set(state);
+      this.vaultContextText = state.vaultMarkdown ?? '';
+      this.messages.set([{
+        role: 'flint',
+        text: `Ready to work on: "${state.taskTitle}". What would you like to do?`,
+      }]);
+    }
+  }
 
   send(): void {
     const prompt = this.input().trim();
@@ -44,8 +65,14 @@ export class ChatPage {
     this.input.set('');
     this.isSending.set(true);
 
+    // Inject vault doc context once on first message from a task thread
+    let contextualPrompt = prompt;
+    if (this.vaultContextText) {
+      contextualPrompt = `[Task vault context]\n${this.vaultContextText.slice(0, 3000)}\n\n---\n${prompt}`;
+      this.vaultContextText = '';
+    }
     const model = this.selectedModel();
-    this.chatService.chat(prompt, model === 'auto' ? undefined : model).subscribe({
+    this.chatService.chat(contextualPrompt, model === 'auto' ? undefined : model).subscribe({
       next: (res: ChatResponse) => {
         this.messages.update((msgs) => [
           ...msgs,

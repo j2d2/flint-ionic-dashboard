@@ -20,6 +20,7 @@ export type ModalMode = 'task' | 'thread';
 export class NewThreadModalComponent implements OnInit {
   @Input() mode: ModalMode = 'task';
   @Input() taskId = 'ad-hoc';
+  @Input() channelId?: string;
   @Output() threadStarted = new EventEmitter<string>();
 
   readonly isSubmitting = signal(false);
@@ -51,8 +52,9 @@ export class NewThreadModalComponent implements OnInit {
   private readonly router = inject(Router);
 
   ngOnInit(): void {
-    if (this.mode === 'thread' && this.channel === 'code') this.taskType = 'code';
-    else if (this.mode === 'thread' && this.channel === 'research') this.taskType = 'research';
+    if (this.channelId) this.channel = this.channelId;
+    if (this.channel === 'code') this.taskType = 'code';
+    else if (this.channel === 'research') this.taskType = 'research';
   }
 
   onChannelChange(): void {
@@ -73,7 +75,7 @@ export class NewThreadModalComponent implements OnInit {
     if (!cleanTitle || this.isSubmitting()) return;
 
     this.isSubmitting.set(true);
-    const tags = this.mode === 'thread' ? `channel:${this.channel}` : undefined;
+    const tags = `channel:${this.channel}`;
 
     this.taskService
       .createTask({

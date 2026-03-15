@@ -8,14 +8,18 @@ import { AgentTaskPatch, NewTaskPayload } from '../types/AgentTask';
 
 export const tasksRouter = Router();
 
-// GET /api/tasks — list tasks with pagination (?status=, ?limit=, ?offset=)
+// GET /api/tasks — list tasks with pagination (?status=, ?limit=, ?offset=, ?channel=)
 tasksRouter.get('/', async (req: Request, res: Response) => {
   try {
     const status = typeof req.query.status === 'string' ? req.query.status : undefined;
+    const channel = typeof req.query.channel === 'string' ? req.query.channel : undefined;
     const limit = req.query.limit ? Math.min(Number(req.query.limit), 200) : 50;
     const offset = req.query.offset ? Math.max(Number(req.query.offset), 0) : 0;
     const result = await flint.listTasksPaged(status, limit, offset);
-    res.json({ tasks: result.tasks, total: result.total, offset, limit });
+    const tasks = channel
+      ? result.tasks.filter(t => t.tags?.includes(`channel:${channel}`))
+      : result.tasks;
+    res.json({ tasks, total: channel ? tasks.length : result.total, offset, limit });
   } catch (err) {
     res.status(500).json({ error: (err as Error).message });
   }
@@ -40,6 +44,21 @@ tasksRouter.get('/:id', async (req: Request, res: Response) => {
       return;
     }
     res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+// GET /api/tasks/:id/haiku — fetch the haiku linked to this task's vault_note
+tasksRouter.get('/:id/haiku', async (req: Request, res: Response) => {
+  try {
+    const task = await flint.getTask(req.params.id);
+    if (!task?.vault_note) {
+      res.json({ haiku: null });
+      return;
+    }
+    const haiku = await flint.getHaikuBySourceDoc(task.vault_note);
+    res.json({ haiku: haiku ?? null });
   } catch (err) {
     res.status(500).json({ error: (err as Error).message });
   }
@@ -130,15 +149,44 @@ tasksRouter.patch('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/tasks/:id/process — release gate, create vault doc, ready for agent swarm
+// POST /api/tasks/:id/process — release gate, create vault doc, generate haiku (background)
 tasksRouter.post('/:id/process', async (req: Request, res: Response) => {
   try {
-    const result = await flint.processTask(req.params.id);
+    const taskId = req.params.id;
+    const result = await flint.processTask(taskId);
     if ('error' in result) {
       res.status(400).json(result);
       return;
     }
-    res.json(result);
+
+    // Respond immediately; haiku generation runs in the background
+    res.json({ ...result, haiku_pending: result.vault_note_created });
+
+    // Background: generate + register a haiku only on first process
+    if (result.vault_note_created) {
+      void (async () => {
+        try {
+          const task = await flint.getTask(taskId);
+          if (!task) return;
+          const haikuResp = await flint.routeAndQuery(
+            `Write a 3-line haiku (5-7-5 syllables) that captures the essence of this task.` +
+            ` Output ONLY the 3 lines, nothing else.\n\nTask: ${task.title}` +
+            (task.description ? `\n${task.description.slice(0, 200)}` : ''),
+          );
+          const raw = (haikuResp.response ?? '').replace(/\n\n---[\s\S]*$/, '').trim();
+          const lines = raw.split('\n').map((l: string) => l.trim()).filter(Boolean).slice(0, 3);
+          if (lines.length === 3) {
+            await flint.registerHaiku(
+              lines.join('\n'),
+              result.vault_note,
+              new Date().toISOString().split('T')[0],
+            );
+          }
+        } catch (e) {
+          console.warn('[process] haiku generation failed:', (e as Error).message);
+        }
+      })();
+    }
   } catch (err) {
     res.status(500).json({ error: (err as Error).message });
   }

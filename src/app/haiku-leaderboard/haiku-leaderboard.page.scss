@@ -1,0 +1,185 @@
+.title-icon {
+  vertical-align: middle;
+  margin-right: 6px;
+  font-size: 1.1em;
+}
+
+.loading-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 0;
+}
+
+/* ── Empty state ─────────────────────────────────────────── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px 24px 40px;
+  text-align: center;
+
+  .empty-icon {
+    font-size: 56px;
+    color: var(--ion-color-medium);
+    margin-bottom: 16px;
+  }
+
+  p { margin: 4px 0; }
+
+  .empty-hint {
+    font-size: 0.85rem;
+    margin-top: 8px;
+  }
+}
+
+/* ── Podium cards ────────────────────────────────────────── */
+.podium-section {
+  padding: 16px 12px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.podium-card {
+  margin: 0;
+  border-radius: 12px;
+
+  ion-card-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1rem;
+  }
+
+  .medal {
+    font-size: 1.4rem;
+    line-height: 1;
+  }
+
+  .vote-badge {
+    font-size: 0.75rem;
+    border-radius: 12px;
+    padding: 4px 10px;
+  }
+}
+
+/* ── Haiku lines (podium) ────────────────────────────────── */
+.haiku-lines {
+  padding: 8px 0 4px;
+
+  .haiku-line {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--ion-color-dark);
+    font-style: italic;
+
+    &--middle {
+      padding-left: 12px;
+      color: var(--ion-color-dark-shade);
+    }
+  }
+}
+
+/* ── Haiku meta (source + date) ─────────────────────────── */
+.haiku-meta {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+
+  .meta-source,
+  .meta-date {
+    font-size: 0.72rem;
+    color: var(--ion-color-medium);
+    text-transform: capitalize;
+  }
+
+  .meta-source::after {
+    content: '·';
+    margin-left: 6px;
+  }
+
+  .vault-link {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    text-decoration: underline dotted;
+    text-underline-offset: 2px;
+
+    &:hover {
+      color: var(--ion-color-primary);
+    }
+
+    .vault-icon {
+      font-size: 0.8em;
+      flex-shrink: 0;
+    }
+  }
+}
+
+/* ── List view ───────────────────────────────────────────── */
+.haiku-list {
+  padding: 0;
+}
+
+.haiku-list-item {
+  --padding-start: 10px;
+  --inner-padding-end: 10px;
+  align-items: flex-start;
+}
+
+.rank {
+  min-width: 36px;
+  text-align: center;
+  padding-top: 14px;
+
+  .rank-medal {
+    font-size: 1.2rem;
+  }
+
+  .rank-number {
+    font-size: 0.8rem;
+    color: var(--ion-color-medium);
+    font-weight: 600;
+  }
+}
+
+.haiku-label {
+  white-space: normal !important;
+  padding: 10px 0;
+}
+
+.haiku-lines--compact {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+
+  .haiku-line-inline {
+    font-size: 0.88rem;
+    font-style: italic;
+    line-height: 1.5;
+    color: var(--ion-color-dark);
+
+    &:nth-child(2) {
+      padding-left: 8px;
+      // color: var(--ion-color-medium-shade);
+    }
+  }
+}
+
+.vote-count {
+  font-size: 0.8rem;
+  min-width: 32px;
+  text-align: center;
+  margin-left: 8px;
+}
+
+.total-count {
+  text-align: center;
+  padding: 16px 0 24px;
+  font-size: 0.8rem;
+  color: var(--ion-color-medium);
+}

@@ -30,6 +30,11 @@ const ALLOWED_TOOLS = new Set([
   'bulk_approve',
   'flush_pending_writes',
   'start_task_processing',
+  // Haiku leaderboard (haiku.db)
+  'register_haiku',
+  'list_haikus',
+  'vote_haiku',
+  'get_haiku_pair',
 ]);
 
 async function callTool(name: string, args: object): Promise<unknown> {
@@ -367,3 +372,60 @@ export async function queryModel(prompt: string, model: string): Promise<{
     model: ((obj.model ?? model) as string),
   };
 }
+
+// ---------------------------------------------------------------------------
+// Haiku leaderboard helpers (haiku.db — separate from tasks.db)
+// ---------------------------------------------------------------------------
+
+export interface HaikuEntry {
+  id: string;
+  haiku_text: string;   // newline-separated 3 lines (5-7-5)
+  source_doc?: string;  // vault-relative path, e.g. Sessions/YYYY-MM-DD-slug.md
+  session_date?: string;
+  vote_count: number;
+  created_at: number;
+}
+
+export async function listHaikus(
+  limit = 20,
+  sortBy: 'votes' | 'newest' = 'votes',
+  offset = 0,
+): Promise<{ haikus: HaikuEntry[]; total: number }> {
+  const r = await callTool('list_haikus', { limit, offset, sort_by: sortBy }) as {
+    haikus?: HaikuEntry[];
+    total?: number;
+  };
+  return { haikus: r?.haikus ?? [], total: r?.total ?? 0 };
+}
+
+export async function voteHaiku(
+  haikuId: string,
+  voterId: string,
+  choreId?: string,
+): Promise<{ status: 'voted' | 'already_voted'; vote_count: number; haiku_id: string }> {
+  return (await callTool('vote_haiku', { haiku_id: haikuId, voter_id: voterId, chore_id: choreId ?? null })) as ReturnType<typeof voteHaiku>;
+}
+
+export async function getHaikuPair(
+  voterId: string,
+): Promise<{ a: HaikuEntry; b: HaikuEntry } | { status: 'no_more_pairs' }> {
+  return (await callTool('get_haiku_pair', { voter_id: voterId })) as ReturnType<typeof getHaikuPair>;
+}
+
+export async function registerHaiku(
+  haikuText: string,
+  sourceDoc?: string,
+  sessionDate?: string,
+): Promise<{ status: string; haiku_id?: string }> {
+  return (await callTool('register_haiku', {
+    haiku_text: haikuText,
+    source_doc: sourceDoc ?? null,
+    session_date: sessionDate ?? null,
+  })) as { status: string; haiku_id?: string };
+}
+
+export async function getHaikuBySourceDoc(sourceDoc: string): Promise<HaikuEntry | null> {
+  const { haikus } = await listHaikus(200, 'newest');
+  return haikus.find(h => h.source_doc === sourceDoc) ?? null;
+}
+

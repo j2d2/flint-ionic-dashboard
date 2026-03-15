@@ -1,5 +1,5 @@
 <ion-header>
-  <ion-toolbar color="dark">
+  <ion-toolbar>
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
@@ -37,17 +37,20 @@
     <div class="col-header">
       <ion-icon [name]="ch.icon" [color]="ch.color"></ion-icon>
       <span class="col-title">{{ ch.name }}</span>
-      <ion-badge color="medium" class="thread-count">0</ion-badge>
+      <ion-badge color="medium" class="thread-count">{{ (tasksByChannel()[ch.id] ?? []).length }}</ion-badge>
+      <ion-button size="small" fill="clear" class="col-add" (click)="newThread(ch.id)" aria-label="New thread">
+        <ion-icon slot="icon-only" name="add-circle-outline"></ion-icon>
+      </ion-button>
     </div>
     <div class="col-body">
-      <div class="empty-col">
+      <div class="task-card" *ngFor="let t of (tasksByChannel()[ch.id] ?? [])" (click)="openTask(t.id)">
+        <ion-badge [color]="statusColor(t.status)" class="task-status-badge">{{ t.status }}</ion-badge>
+        <p class="task-card-title">{{ t.title }}</p>
+      </div>
+      <div class="empty-col" *ngIf="!(tasksByChannel()[ch.id]?.length)">
         <ion-icon name="git-branch-outline" class="empty-icon"></ion-icon>
         <p>No threads yet</p>
         <p class="empty-desc">{{ ch.description }}</p>
-        <ion-button size="small" fill="outline" (click)="newThread(ch.id)">
-          <ion-icon slot="start" name="add-outline"></ion-icon>
-          New Thread
-        </ion-button>
       </div>
     </div>
   </div>
@@ -64,7 +67,14 @@
       <ion-icon [name]="ch.icon" [color]="ch.color" class="ch-header-icon"></ion-icon>
       <ion-label>{{ ch.name }}</ion-label>
     </ion-list-header>
-    <ion-item lines="none" class="empty-list-item">
+    <ion-item button detail="true" *ngFor="let t of (tasksByChannel()[ch.id] ?? [])" (click)="openTask(t.id)">
+      <ion-badge slot="start" [color]="statusColor(t.status)" class="thread-status-badge">{{ t.status }}</ion-badge>
+      <ion-label class="ion-padding-start">
+        <h3>{{ t.title }}</h3>
+        <p>{{ t.task_type }}</p>
+      </ion-label>
+    </ion-item>
+    <ion-item lines="none" class="empty-list-item" *ngIf="!(tasksByChannel()[ch.id]?.length)">
       <ion-label color="medium">
         <p>No threads in {{ ch.name }} &mdash; {{ ch.description }}</p>
       </ion-label>

@@ -33,13 +33,27 @@
         </ion-row>
         <ion-row *ngIf="currentTask.vault_note">
           <ion-col size="5" class="spec-key">Vault Note</ion-col>
-          <ion-col size="7" class="mono vault-path">{{ currentTask.vault_note }}</ion-col>
+          <ion-col size="7">
+            <button class="vault-link" (click)="openVaultViewer()">
+              <ion-icon name="open-outline"></ion-icon>
+              <span class="mono vault-path">{{ currentTask.vault_note }}</span>
+            </button>
+          </ion-col>
         </ion-row>
         <ion-row *ngIf="currentTask.tags">
           <ion-col size="5" class="spec-key">Tags</ion-col>
           <ion-col size="7">{{ currentTask.tags }}</ion-col>
         </ion-row>
       </ion-grid>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- ─── Haiku card (tl;dr context) ─── -->
+  <ion-card *ngIf="haiku()" class="haiku-card ion-margin-top">
+    <ion-card-content class="haiku-body">
+      <ion-icon name="leaf-outline" class="haiku-leaf"></ion-icon>
+      <pre class="haiku-text">{{ haiku()!.haiku_text }}</pre>
+      <p class="haiku-votes" *ngIf="haiku()!.vote_count > 0">♥ {{ haiku()!.vote_count }}</p>
     </ion-card-content>
   </ion-card>
 
@@ -63,7 +77,7 @@
   <!-- ─── Vault doc markdown (expandable) ─── -->
   <ion-accordion-group *ngIf="vaultMarkdown()">
     <ion-accordion value="vault-doc">
-      <ion-item slot="header" color="dark">
+      <ion-item slot="header">
         <ion-icon name="document-text-outline" slot="start"></ion-icon>
         <ion-label>View Plan Doc</ion-label>
       </ion-item>
@@ -83,9 +97,28 @@
     {{ isProcessing() ? 'Processing...' : 'Process Task' }}
   </ion-button>
 
-  <ion-button expand="block" class="ion-margin-top" fill="outline" (click)="startNewThread()">
-    Chat / New Thread
+  <ion-button expand="block" class="ion-margin-top" fill="outline" (click)="startThread()">
+    <ion-icon slot="start" name="chatbubble-outline"></ion-icon>
+    Open Chat
   </ion-button>
+
+  <!-- ─── Session threads ─── -->
+  <ion-card *ngIf="sessionTasks().length > 0" class="ion-margin-top">
+    <ion-card-header>
+      <ion-card-subtitle>Sessions ({{ sessionTasks().length }})</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content class="ion-no-padding">
+      <ion-list lines="full" class="ion-no-padding">
+        <ion-item *ngFor="let st of sessionTasks()" button detail="true" (click)="openTask(st.id)">
+          <ion-badge slot="start" [color]="statusColor(st.status)" class="thread-status-badge">{{ st.status }}</ion-badge>
+          <ion-label class="ion-padding-start">
+            <h3>{{ st.title }}</h3>
+            <p>{{ formatDate(st.updated_at) }}</p>
+          </ion-label>
+        </ion-item>
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
 
 </ion-content>
 

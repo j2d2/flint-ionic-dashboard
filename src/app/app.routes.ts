@@ -26,6 +26,10 @@ export const routes: Routes = [
     loadComponent: () => import('./new-thread/new-thread-modal.component').then((m) => m.NewThreadModalComponent),
   },
   {
+    path: 'haiku-leaderboard',
+    loadComponent: () => import('./haiku-leaderboard/haiku-leaderboard.page').then((m) => m.HaikuLeaderboardPage),
+  },
+  {
     path: '',
     redirectTo: 'dashboard',
     pathMatch: 'full',

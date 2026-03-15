@@ -1,0 +1,130 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>
+      <ion-icon name="trophy-outline" class="title-icon"></ion-icon>
+      Haiku Leaderboard
+    </ion-title>
+  </ion-toolbar>
+
+  <ion-toolbar>
+    <ion-segment [value]="sortBy()" (ionChange)="onSortChange($any($event))">
+      <ion-segment-button value="votes">
+        <ion-icon name="flame-outline"></ion-icon>
+        <ion-label>Top Voted</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="newest">
+        <ion-icon name="time-outline"></ion-icon>
+        <ion-label>Newest</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="load($any($event))">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  @if (isLoading()) {
+    <div class="loading-center">
+      <ion-spinner name="crescent"></ion-spinner>
+    </div>
+  }
+
+  @if (!isLoading() && haikus().length === 0) {
+    <div class="empty-state">
+      <ion-icon name="ribbon-outline" class="empty-icon"></ion-icon>
+      <ion-text color="medium">
+        <p>No haikus yet.</p>
+        <p class="empty-hint">Complete a session summary to generate your first haiku.</p>
+      </ion-text>
+    </div>
+  }
+
+  @if (!isLoading() && haikus().length > 0) {
+    <!-- Podium: top 3 -->
+    @if (sortBy() === 'votes' && topThree().length > 0) {
+      <div class="podium-section">
+        @for (haiku of topThree(); track haiku.id; let i = $index) {
+          <ion-card class="podium-card">
+            <ion-card-header>
+              <ion-card-title>
+                <span class="medal">{{ medalLabels[i] ?? '' }}</span>
+                <ion-badge [color]="medalColors[i] ?? 'primary'" class="vote-badge">
+                  {{ haiku.vote_count }} {{ haiku.vote_count === 1 ? 'vote' : 'votes' }}
+                </ion-badge>
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <div class="haiku-lines">
+                @for (line of splitLines(haiku.haiku_text); track $index) {
+                  <p class="haiku-line" [class.haiku-line--middle]="$index === 1">{{ line }}</p>
+                }
+              </div>
+              @if (haiku.source_doc || haiku.session_date) {
+                <div class="haiku-meta">
+                  @if (haiku.source_doc) {
+                    <span class="meta-source" (click)="openInVault(haiku.source_doc)" title="Open in Obsidian">
+                      <ion-icon name="document-text-outline" class="vault-icon"></ion-icon>
+                      {{ sourceLabel(haiku.source_doc) }}
+                    </span>
+                  }
+                  @if (haiku.session_date) {
+                    <span class="meta-date">{{ haiku.session_date }}</span>
+                  }
+                </div>
+              }
+            </ion-card-content>
+          </ion-card>
+        }
+      </div>
+    }
+
+    <!-- Full list -->
+    <ion-list class="haiku-list">
+      @for (haiku of haikus(); track haiku.id; let i = $index) {
+        <ion-item lines="full" class="haiku-list-item">
+          <div slot="start" class="rank">
+            @if (sortBy() === 'votes' && i < 3) {
+              <span class="rank-medal">{{ medalLabels[i] }}</span>
+            } @else {
+              <span class="rank-number">#{{ i + 1 }}</span>
+            }
+          </div>
+
+          <ion-label class="haiku-label">
+            <div class="haiku-lines haiku-lines--compact">
+              @for (line of splitLines(haiku.haiku_text); track $index) {
+                <span class="haiku-line-inline">{{ line }}</span>
+              }
+            </div>
+            @if (haiku.source_doc || haiku.session_date) {
+              <div class="haiku-meta">
+                @if (haiku.source_doc) {
+                  <ion-note class="meta-source vault-link" (click)="openInVault(haiku.source_doc)" title="Open in Obsidian">
+                    <ion-icon name="document-text-outline" class="vault-icon"></ion-icon>
+                    {{ sourceLabel(haiku.source_doc) }}
+                  </ion-note>
+                }
+                @if (haiku.session_date) {
+                  <ion-note class="meta-date">{{ haiku.session_date }}</ion-note>
+                }
+              </div>
+            }
+          </ion-label>
+
+          <ion-badge slot="end" color="primary" class="vote-count">
+            {{ haiku.vote_count }}
+          </ion-badge>
+        </ion-item>
+      }
+    </ion-list>
+
+    <div class="total-count">
+      <ion-note>{{ total() }} haiku{{ total() === 1 ? '' : 's' }} total</ion-note>
+    </div>
+  }
+</ion-content>

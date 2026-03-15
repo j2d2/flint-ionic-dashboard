@@ -28,6 +28,41 @@ pre {
 .mono { font-family: monospace; font-size: 12px; }
 .vault-path { word-break: break-all; opacity: 0.7; }
 
+.vault-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--ion-color-primary);
+  text-align: left;
+  padding: 2px 0;
+
+  ion-icon { font-size: 14px; flex-shrink: 0; }
+
+  .vault-path {
+    opacity: 0.8;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  &:hover .vault-path { opacity: 1; }
+}
+
+.vault-note-path {
+  font-family: monospace;
+  font-size: 11px;
+  opacity: 0.55;
+  margin-bottom: 16px;
+  word-break: break-all;
+}
+
+.thread-status-badge {
+  margin-inline-end: 4px;
+  flex-shrink: 0;
+}
+
 // Frontmatter key/value
 .fm-key {
   font-size: 11px;
@@ -93,5 +128,41 @@ pre {
     text-align: left;
   }
   th { background: var(--ion-color-step-100, #222); font-weight: 600; }
+}
+
+// Haiku TL;DR card
+.haiku-card {
+  --background: var(--ion-color-step-50, #111);
+  border-left: 3px solid var(--ion-color-primary);
+}
+
+.haiku-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 16px;
+  gap: 6px;
+}
+
+.haiku-leaf {
+  font-size: 18px;
+  color: var(--ion-color-primary);
+  opacity: 0.7;
+}
+
+.haiku-text {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 0.95rem;
+  line-height: 1.8;
+  text-align: center;
+  margin: 0;
+  white-space: pre;
+  color: var(--ion-text-color);
+}
+
+.haiku-votes {
+  font-size: 0.7rem;
+  color: var(--ion-color-medium);
+  margin: 0;
 }
 

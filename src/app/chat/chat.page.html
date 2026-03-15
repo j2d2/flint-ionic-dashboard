@@ -1,5 +1,5 @@
 <ion-header>
-  <ion-toolbar color="dark">
+  <ion-toolbar>
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
@@ -18,6 +18,14 @@
 </ion-header>
 
 <ion-content #msgList class="chat-content">
+  <!-- Task context banner -->
+  <div *ngIf="taskContext()" class="task-context-banner">
+    <ion-icon name="flash-outline"></ion-icon>
+    <span class="task-context-title">{{ taskContext()?.taskTitle }}</span>
+    <ion-button fill="clear" size="small" [routerLink]="['/task', taskContext()?.taskId]" class="task-context-back">
+      <ion-icon slot="icon-only" name="arrow-back-outline"></ion-icon>
+    </ion-button>
+  </div>
   <div class="messages">
     <div
       *ngFor="let msg of messages()"

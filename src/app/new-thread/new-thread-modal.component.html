@@ -28,8 +28,8 @@
     ></ion-textarea>
   </ion-item>
 
-  <!-- Channel picker — only for Thread mode -->
-  <ion-item *ngIf="mode === 'thread'">
+  <!-- Channel picker — all modes -->
+  <ion-item>
     <ion-label>Channel</ion-label>
     <ion-select [(ngModel)]="channel" interface="popover" (ngModelChange)="onChannelChange()">
       <ion-select-option *ngFor="let ch of channels" [value]="ch.id">

@@ -54,18 +54,6 @@
           }
         </div>
 
-        <!-- 2. Agent Tasks + Chat -->
-        <ion-list class="nav-list">
-          @for (item of appPages; track item.url) {
-            <ion-menu-toggle autoHide="false">
-              <ion-item [routerLink]="item.url" routerDirection="root" lines="full">
-                <ion-icon slot="start" [name]="item.icon"></ion-icon>
-                <ion-label>{{ item.title }}</ion-label>
-              </ion-item>
-            </ion-menu-toggle>
-          }
-        </ion-list>
-
         <!-- 3. Hot Threads (review tasks) -->
         @if (reviewTasks().length > 0) {
           <div class="menu-section">
@@ -94,14 +82,27 @@
           </div>
         }
 
-        <!-- 4. Haiku Leaderboard (coming soon) -->
+        <!-- 2. Agent Tasks + Chat -->
+        <ion-list class="nav-list">
+          @for (item of appPages; track item.url) {
+            <ion-menu-toggle autoHide="false">
+              <ion-item [routerLink]="item.url" routerDirection="root" lines="full">
+                <ion-icon slot="start" [name]="item.icon"></ion-icon>
+                <ion-label>{{ item.title }}</ion-label>
+              </ion-item>
+            </ion-menu-toggle>
+          }
+        </ion-list>
+
+        <!-- 4. Haiku Leaderboard -->
         <div class="menu-section menu-section--last">
           <ion-list>
-            <ion-item lines="none" disabled class="haiku-item">
-              <ion-icon slot="start" name="trophy-outline"></ion-icon>
-              <ion-label>Haiku Leaderboard</ion-label>
-              <ion-badge slot="end" color="medium" class="soon-badge">soon</ion-badge>
-            </ion-item>
+            <ion-menu-toggle autoHide="false">
+              <ion-item [routerLink]="['/haiku-leaderboard']" routerDirection="root" lines="none" class="haiku-item">
+                <ion-icon slot="start" name="trophy-outline"></ion-icon>
+                <ion-label>Haiku Leaderboard</ion-label>
+              </ion-item>
+            </ion-menu-toggle>
           </ion-list>
         </div>
 

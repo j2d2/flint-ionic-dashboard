@@ -5,6 +5,7 @@ import { Observable, map } from 'rxjs';
 import {
   AgentTask,
   AgentTaskPatch,
+  HaikuEntry,
   NewTaskPayload,
   QueueStats,
 } from '../models/agent-task.model';
@@ -23,6 +24,16 @@ export class TaskService {
   getTask(id: string): Observable<AgentTask> {
     return this.http.get<{ task: AgentTask } | AgentTask>(`/api/tasks/${id}`).pipe(
       map((r) => ('task' in r && r.task ? r.task : r as AgentTask))
+    );
+  }
+
+  getTaskFull(id: string): Observable<{ task: AgentTask; session_tasks: AgentTask[]; total_children: number }> {
+    return this.http.get<{ task: AgentTask; session_tasks?: AgentTask[]; total_children?: number }>(`/api/tasks/${id}`).pipe(
+      map((r) => ({
+        task: r.task ?? (r as unknown as AgentTask),
+        session_tasks: r.session_tasks ?? [],
+        total_children: r.total_children ?? 0,
+      }))
     );
   }
 
@@ -57,6 +68,10 @@ export class TaskService {
 
   sendChat(id: string, message: string): Observable<{ task_id: string }> {
     return this.http.post<{ task_id: string }>(`/api/tasks/${id}/chat`, { message });
+  }
+
+  getTaskHaiku(id: string): Observable<{ haiku: HaikuEntry | null }> {
+    return this.http.get<{ haiku: HaikuEntry | null }>(`/api/tasks/${id}/haiku`);
   }
 }
 

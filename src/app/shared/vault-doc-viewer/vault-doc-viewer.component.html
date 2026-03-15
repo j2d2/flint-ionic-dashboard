@@ -1,0 +1,30 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title class="doc-path-title">{{ vaultNotePath }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="close()">Close</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <div class="loading-wrap" *ngIf="loading()">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Loading vault doc…</p>
+  </div>
+
+  <ion-text color="danger" *ngIf="error()">
+    <p>{{ error() }}</p>
+  </ion-text>
+
+  <div *ngIf="!loading() && !error()">
+    <div *ngIf="markdown(); else noContent"
+         [innerHTML]="markdown() | markdownHtml"
+         class="md-content"></div>
+    <ng-template #noContent>
+      <ion-text color="medium"><p>No content found for this vault doc.</p></ion-text>
+    </ng-template>
+  </div>
+
+</ion-content>
