@@ -10,8 +10,11 @@
  */
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Component, Input, OnInit, inject, signal } from '@angular/core';
-import { IonicModule, ModalController } from '@ionic/angular';
+import { ChangeDetectionStrategy, Component, OnInit, inject, input, signal } from '@angular/core';
+import {
+  IonButton, IonButtons, IonContent, IonHeader, IonSpinner, IonText, IonTitle, IonToolbar,
+  ModalController,
+} from '@ionic/angular/standalone';
 
 import { MarkdownPipe } from '../../pipes/markdown.pipe';
 
@@ -20,10 +23,15 @@ import { MarkdownPipe } from '../../pipes/markdown.pipe';
   templateUrl: './vault-doc-viewer.component.html',
   styleUrls: ['./vault-doc-viewer.component.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, MarkdownPipe],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    CommonModule,
+    IonButton, IonButtons, IonContent, IonHeader, IonSpinner, IonText, IonTitle, IonToolbar,
+    MarkdownPipe,
+  ],
 })
 export class VaultDocViewerComponent implements OnInit {
-  @Input() vaultNotePath = '';
+  readonly vaultNotePath = input('');
 
   readonly markdown = signal<string | null>(null);
   readonly loading = signal(true);
@@ -33,12 +41,12 @@ export class VaultDocViewerComponent implements OnInit {
   private readonly modalController = inject(ModalController);
 
   ngOnInit(): void {
-    if (!this.vaultNotePath) {
+    if (!this.vaultNotePath()) {
       this.error.set('No vault path provided');
       this.loading.set(false);
       return;
     }
-    const params = new HttpParams().set('path', this.vaultNotePath);
+    const params = new HttpParams().set('path', this.vaultNotePath());
     this.http.get<{ path: string; markdown: string }>('/api/vault/doc', { params }).subscribe({
       next: (r) => {
         this.markdown.set(r.markdown);

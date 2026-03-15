@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonContent,
@@ -35,6 +35,7 @@ import { HaikuService } from '../services/haiku.service';
   templateUrl: './haiku-leaderboard.page.html',
   styleUrls: ['./haiku-leaderboard.page.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     IonContent,

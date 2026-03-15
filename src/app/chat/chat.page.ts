@@ -1,7 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { IonicModule } from '@ionic/angular';
+import {
+  IonButton, IonButtons, IonContent, IonFooter, IonHeader, IonIcon, IonMenuButton,
+  IonSelect, IonSelectOption, IonSpinner, IonTextarea, IonTitle, IonToolbar,
+} from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { arrowBackOutline, flashOutline } from 'ionicons/icons';
 
@@ -27,7 +30,11 @@ const MODEL_OPTIONS = [
   styleUrls: ['./chat.page.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, IonicModule, RouterModule],
+  imports: [
+    CommonModule, RouterModule,
+    IonButton, IonButtons, IonContent, IonFooter, IonHeader, IonIcon, IonMenuButton,
+    IonSelect, IonSelectOption, IonSpinner, IonTextarea, IonTitle, IonToolbar,
+  ],
 })
 export class ChatPage implements OnInit {
   @ViewChild('msgList') private msgList!: ElementRef<HTMLIonContentElement>;

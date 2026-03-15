@@ -1,7 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
-import { IonicModule, ModalController } from '@ionic/angular';
+import {
+  IonBadge, IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonItem,
+  IonLabel, IonList, IonListHeader, IonMenuButton, IonRefresher, IonRefresherContent,
+  IonTitle, IonToolbar,
+  ModalController,
+} from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { addCircleOutline } from 'ionicons/icons';
 
@@ -17,7 +22,12 @@ import { TaskService } from '../services/task.service';
   styleUrls: ['./dashboard.page.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, RouterModule, IonicModule],
+  imports: [
+    CommonModule, RouterModule,
+    IonBadge, IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonItem,
+    IonLabel, IonList, IonListHeader, IonMenuButton, IonRefresher, IonRefresherContent,
+    IonTitle, IonToolbar,
+  ],
 })
 export class DashboardPage implements OnInit {
   readonly channels: Channel[] = DEFAULT_CHANNELS;

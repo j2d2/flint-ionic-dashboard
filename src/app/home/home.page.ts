@@ -1,8 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { IonicModule } from '@ionic/angular';
+import {
+  IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle,
+  IonCardTitle, IonChip, IonCol, IonContent, IonGrid, IonHeader, IonIcon, IonLabel,
+  IonMenuButton, IonRow, IonSkeletonText, IonText, IonTitle, IonToolbar,
+} from '@ionic/angular/standalone';
 
 interface SystemInfo {
   tier: string;
@@ -25,7 +29,13 @@ interface SystemInfo {
   templateUrl: './home.page.html',
   styleUrls: ['./home.page.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    CommonModule,
+    IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle,
+    IonCardTitle, IonChip, IonCol, IonContent, IonGrid, IonHeader, IonIcon, IonLabel,
+    IonMenuButton, IonRow, IonSkeletonText, IonText, IonTitle, IonToolbar,
+  ],
 })
 export class HomePage implements OnInit {
   readonly info = signal<SystemInfo | null>(null);

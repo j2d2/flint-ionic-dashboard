@@ -1,7 +1,13 @@
 import { CommonModule, DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { IonicModule, ModalController, ToastController } from '@ionic/angular';
+import {
+  IonAccordion, IonAccordionGroup, IonBackButton, IonBadge, IonButton, IonButtons,
+  IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonCol,
+  IonContent, IonGrid, IonHeader, IonIcon, IonItem, IonLabel, IonList, IonRow,
+  IonText, IonTitle, IonToolbar,
+  ModalController, ToastController,
+} from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { chatbubbleOutline, documentTextOutline, gitBranchOutline, leafOutline, openOutline } from 'ionicons/icons';
 
@@ -16,7 +22,14 @@ import { TaskService } from '../services/task.service';
   styleUrls: ['./task-detail.page.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, IonicModule, MarkdownPipe],
+  imports: [
+    CommonModule,
+    IonAccordion, IonAccordionGroup, IonBackButton, IonBadge, IonButton, IonButtons,
+    IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonCol,
+    IonContent, IonGrid, IonHeader, IonIcon, IonItem, IonLabel, IonList, IonRow,
+    IonText, IonTitle, IonToolbar,
+    MarkdownPipe,
+  ],
   providers: [DatePipe],
 })
 export class TaskDetailPage implements OnInit {

@@ -1,7 +1,13 @@
 import { CommonModule, DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
-import { IonicModule, ModalController } from '@ionic/angular';
+import {
+  IonBadge, IonButton, IonButtons, IonContent, IonFab, IonFabButton, IonFabList,
+  IonHeader, IonIcon, IonInfiniteScroll, IonInfiniteScrollContent, IonItem,
+  IonLabel, IonList, IonMenuButton, IonNote, IonPopover, IonRefresher,
+  IonRefresherContent, IonSearchbar, IonSegment, IonSegmentButton, IonTitle, IonToolbar,
+  ModalController,
+} from '@ionic/angular/standalone';
 import { Subscription } from 'rxjs';
 
 import { AgentTask, parseTaskDate, statusColor } from '../models/agent-task.model';
@@ -19,7 +25,13 @@ const PAGE_SIZE = 200;
   styleUrls: ['./agent-tasks.page.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, RouterModule, IonicModule],
+  imports: [
+    CommonModule, RouterModule,
+    IonBadge, IonButton, IonButtons, IonContent, IonFab, IonFabButton, IonFabList,
+    IonHeader, IonIcon, IonInfiniteScroll, IonInfiniteScrollContent, IonItem,
+    IonLabel, IonList, IonMenuButton, IonNote, IonPopover, IonRefresher,
+    IonRefresherContent, IonSearchbar, IonSegment, IonSegmentButton, IonTitle, IonToolbar,
+  ],
   providers: [DatePipe],
 })
 export class AgentTasksPage implements OnInit, OnDestroy {

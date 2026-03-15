@@ -1,7 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnInit, Output, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { IonicModule, ModalController } from '@ionic/angular';
+import {
+  IonButton, IonButtons, IonContent, IonHeader, IonItem, IonLabel, IonSelect,
+  IonSelectOption, IonTextarea, IonTitle, IonToolbar,
+  ModalController,
+} from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
 
 import { AgentTask } from '../models/agent-task.model';
@@ -15,13 +19,18 @@ export type ModalMode = 'task' | 'thread';
   templateUrl: './new-thread-modal.component.html',
   styleUrls: ['./new-thread-modal.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    CommonModule, FormsModule,
+    IonButton, IonButtons, IonContent, IonHeader, IonItem, IonLabel, IonSelect,
+    IonSelectOption, IonTextarea, IonTitle, IonToolbar,
+  ],
 })
 export class NewThreadModalComponent implements OnInit {
-  @Input() mode: ModalMode = 'task';
-  @Input() taskId = 'ad-hoc';
-  @Input() channelId?: string;
-  @Output() threadStarted = new EventEmitter<string>();
+  readonly mode = input<ModalMode>('task');
+  readonly taskId = input('ad-hoc');
+  readonly channelId = input<string | undefined>(undefined);
+  readonly threadStarted = output<string>();
 
   readonly isSubmitting = signal(false);
   title = '';
@@ -39,12 +48,12 @@ export class NewThreadModalComponent implements OnInit {
   ];
 
   get modalTitle(): string {
-    return this.mode === 'thread' ? 'New Thread' : 'New Agent Task';
+    return this.mode() === 'thread' ? 'New Thread' : 'New Agent Task';
   }
 
   get submitLabel(): string {
     if (this.isSubmitting()) return 'Creating…';
-    return this.mode === 'thread' ? 'Start Thread' : 'Create Task';
+    return this.mode() === 'thread' ? 'Start Thread' : 'Create Task';
   }
 
   private readonly modalController = inject(ModalController);
@@ -52,7 +61,7 @@ export class NewThreadModalComponent implements OnInit {
   private readonly router = inject(Router);
 
   ngOnInit(): void {
-    if (this.channelId) this.channel = this.channelId;
+    if (this.channelId()) this.channel = this.channelId()!;
     if (this.channel === 'code') this.taskType = 'code';
     else if (this.channel === 'research') this.taskType = 'research';
   }
@@ -87,7 +96,7 @@ export class NewThreadModalComponent implements OnInit {
       .subscribe({
         next: (task: AgentTask) => {
           this.threadStarted.emit(task.id);
-          if (this.mode === 'thread') {
+          if (this.mode() === 'thread') {
             void this.dismiss({ task });
             void this.router.navigate(['/task', task.id]);
           } else {
