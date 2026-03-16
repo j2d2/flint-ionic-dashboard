@@ -1,0 +1,280 @@
+/* ── Title ───────────────────────────────────────────────── */
+.title-icon {
+  vertical-align: middle;
+  margin-right: 6px;
+  font-size: 1.1em;
+}
+
+/* ── URL input section ───────────────────────────────────── */
+.url-section {
+  padding: 16px 12px 4px;
+}
+
+.url-card {
+  margin: 0;
+  border-radius: 12px;
+}
+
+.url-item {
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  margin-bottom: 12px;
+
+  ion-icon { font-size: 1.4rem; margin-right: 8px; }
+
+  .url-input {
+    --padding-start: 0;
+    font-size: 0.95rem;
+  }
+}
+
+.analyze-btn {
+  margin-top: 4px;
+}
+
+/* ── Stage progress ──────────────────────────────────────── */
+.stages-section {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stage-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: var(--ion-color-medium);
+  transition: color 0.3s;
+
+  ion-icon, ion-spinner {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+
+  .stage-spinner {
+    width: 1.2rem;
+    height: 1.2rem;
+  }
+
+  &.stage--active {
+    color: var(--ion-color-primary);
+    font-weight: 500;
+  }
+
+  &.stage--done {
+    color: var(--ion-color-success);
+  }
+}
+
+/* ── Error card ──────────────────────────────────────────── */
+.error-card {
+  margin: 12px;
+  border-left: 4px solid var(--ion-color-danger);
+
+  ion-card-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--ion-color-danger);
+    font-size: 0.9rem;
+  }
+}
+
+/* ── Results section ─────────────────────────────────────── */
+.results-section {
+  padding: 4px 0 24px;
+}
+
+/* Video info */
+.video-card {
+  .video-meta { font-size: 0.8rem; opacity: 0.7; }
+
+  .tldr {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin: 0 0 12px;
+  }
+
+  .video-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: var(--ion-color-danger);
+    text-decoration: none;
+
+    ion-icon { font-size: 1.1rem; }
+    &:hover { text-decoration: underline; }
+  }
+}
+
+/* Haiku */
+.haiku-card {
+  background: linear-gradient(135deg, var(--ion-color-primary-tint), var(--ion-color-secondary-tint));
+}
+
+.haiku-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  ion-icon { font-size: 1rem; }
+}
+
+.haiku-text {
+  text-align: center;
+  padding: 12px 0;
+}
+
+.haiku-line {
+  font-size: 1.1rem;
+  font-style: italic;
+  letter-spacing: 0.02em;
+  line-height: 1.8;
+  margin: 0;
+}
+
+/* Takeaways */
+.takeaways-list {
+  padding-left: 20px;
+  margin: 0;
+
+  li {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin-bottom: 6px;
+    padding-left: 4px;
+  }
+}
+
+/* Credibility */
+.credibility-card {
+  .red-flags { margin-top: 12px; }
+  .red-flag {
+    font-size: 0.85rem;
+    color: var(--ion-color-danger);
+    margin: 4px 0;
+  }
+}
+
+/* Swarm tasks */
+.tasks-card {
+  .tasks-list {
+    margin-bottom: 12px;
+  }
+}
+
+.task-item {
+  border-radius: 8px;
+  margin-bottom: 6px;
+  --background: var(--ion-color-light);
+
+  &.task--selected {
+    --background: var(--ion-color-primary-tint);
+  }
+
+  ion-label h3 {
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 4px;
+    white-space: normal;
+  }
+
+  ion-label p {
+    font-size: 0.8rem;
+    white-space: normal;
+    color: var(--ion-color-medium-shade);
+    margin-bottom: 6px;
+  }
+}
+
+.task-badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+
+  ion-badge {
+    font-size: 0.7rem;
+    text-transform: capitalize;
+  }
+}
+
+.queue-btn {
+  margin-top: 8px;
+}
+
+.queue-success {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  font-size: 0.85rem;
+  color: var(--ion-color-success);
+
+  ion-icon { font-size: 1.1rem; }
+}
+
+/* References */
+.references-card {}
+
+.ref-group {
+  margin-bottom: 16px;
+
+  &:last-child { margin-bottom: 0; }
+}
+
+.ref-group-title {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ion-color-medium);
+  margin: 0 0 6px;
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+
+  ion-chip { font-size: 0.8rem; height: 26px; }
+}
+
+.ref-book, .ref-url {
+  font-size: 0.85rem;
+  margin: 4px 0;
+
+  a {
+    color: var(--ion-color-primary);
+    word-break: break-all;
+  }
+}
+
+/* ── Empty state ─────────────────────────────────────────── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px 24px 40px;
+  text-align: center;
+
+  .empty-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+  }
+
+  .empty-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 10px;
+  }
+
+  .empty-hint {
+    font-size: 0.85rem;
+    color: var(--ion-color-medium);
+    max-width: 300px;
+    line-height: 1.6;
+    margin: 0;
+  }
+}

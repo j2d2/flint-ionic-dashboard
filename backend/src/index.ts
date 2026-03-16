@@ -20,6 +20,7 @@ import { chatRouter } from './routes/chat';
 import { systemRouter } from './routes/system';
 import { haikusRouter } from './routes/haikus';
 import { vaultRouter } from './routes/vault';
+import { youtubeRouter } from './routes/youtube';
 import { startTailing, threadEvents } from './services/toolCallTailer';
 import * as flint from './services/flintMcp';
 import { AgentTask } from './types/AgentTask';
@@ -67,6 +68,7 @@ app.use('/api/chat', chatRouter);
 app.use('/api/system', systemRouter);
 app.use('/api/haikus', haikusRouter);
 app.use('/api/vault', vaultRouter);
+app.use('/api/youtube', youtubeRouter);
 
 app.get('/api/health', (_req, res) => {
   res.json({

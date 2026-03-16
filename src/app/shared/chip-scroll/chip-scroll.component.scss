@@ -1,0 +1,27 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.chip-scroll-track {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  padding: 6px 12px 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar { display: none; }
+}
+
+.scroll-chip {
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  --padding-start: 10px;
+  --padding-end: 10px;
+  margin: 0;
+}

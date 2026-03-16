@@ -10,7 +10,7 @@
  */
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, OnInit, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, inject, signal } from '@angular/core';
 import {
   IonButton, IonButtons, IonContent, IonHeader, IonSpinner, IonText, IonTitle, IonToolbar,
   ModalController,
@@ -31,7 +31,8 @@ import { MarkdownPipe } from '../../pipes/markdown.pipe';
   ],
 })
 export class VaultDocViewerComponent implements OnInit {
-  readonly vaultNotePath = input('');
+  // @Input() (not signal input) so Ionic componentProps can set it directly
+  @Input() vaultNotePath = '';
 
   readonly markdown = signal<string | null>(null);
   readonly loading = signal(true);
@@ -39,22 +40,25 @@ export class VaultDocViewerComponent implements OnInit {
 
   private readonly http = inject(HttpClient);
   private readonly modalController = inject(ModalController);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   ngOnInit(): void {
-    if (!this.vaultNotePath()) {
+    if (!this.vaultNotePath) {
       this.error.set('No vault path provided');
       this.loading.set(false);
       return;
     }
-    const params = new HttpParams().set('path', this.vaultNotePath());
+    const params = new HttpParams().set('path', this.vaultNotePath);
     this.http.get<{ path: string; markdown: string }>('/api/vault/doc', { params }).subscribe({
       next: (r) => {
         this.markdown.set(r.markdown);
         this.loading.set(false);
+        this.cdr.markForCheck();
       },
       error: (e: { error?: { error?: string }; message?: string }) => {
         this.error.set(e.error?.error ?? e.message ?? 'Failed to load vault doc');
         this.loading.set(false);
+        this.cdr.markForCheck();
       },
     });
   }

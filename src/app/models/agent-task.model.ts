@@ -24,6 +24,8 @@ export interface AgentTask {
   model?: string;
   model_used?: string;
   vault_note?: string;
+  child_count?: number;
+  done_children?: number;
   tags?: string;
   output?: string;
   error?: string;
@@ -93,4 +95,12 @@ export interface HaikuEntry {
   session_date?: string;
   vote_count: number;
   created_at: number;
+}
+
+export interface PlanExecuteResult {
+  task_id: string;
+  plan_text: string;
+  model_used: string;
+  cost_usd?: number;
+  vault_note?: string;
 }

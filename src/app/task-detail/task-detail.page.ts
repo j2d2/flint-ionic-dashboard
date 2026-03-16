@@ -3,15 +3,15 @@ import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@ang
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   IonAccordion, IonAccordionGroup, IonBackButton, IonBadge, IonButton, IonButtons,
-  IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonCol,
+  IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonChip, IonCol,
   IonContent, IonGrid, IonHeader, IonIcon, IonItem, IonLabel, IonList, IonRow,
-  IonText, IonTitle, IonToolbar,
+  IonText, IonTextarea, IonTitle, IonToolbar,
   ModalController, ToastController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { chatbubbleOutline, documentTextOutline, gitBranchOutline, leafOutline, openOutline } from 'ionicons/icons';
+import { chatbubbleOutline, closeOutline, documentTextOutline, gitBranchOutline, leafOutline, openOutline, sparklesOutline } from 'ionicons/icons';
 
-import { AgentTask, HaikuEntry, parseTaskDate, statusColor } from '../models/agent-task.model';
+import { AgentTask, HaikuEntry, PlanExecuteResult, parseTaskDate, statusColor } from '../models/agent-task.model';
 import { MarkdownPipe } from '../pipes/markdown.pipe';
 import { VaultDocViewerComponent } from '../shared/vault-doc-viewer/vault-doc-viewer.component';
 import { TaskService } from '../services/task.service';
@@ -25,9 +25,9 @@ import { TaskService } from '../services/task.service';
   imports: [
     CommonModule,
     IonAccordion, IonAccordionGroup, IonBackButton, IonBadge, IonButton, IonButtons,
-    IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonCol,
+    IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonChip, IonCol,
     IonContent, IonGrid, IonHeader, IonIcon, IonItem, IonLabel, IonList, IonRow,
-    IonText, IonTitle, IonToolbar,
+    IonText, IonTextarea, IonTitle, IonToolbar,
     MarkdownPipe,
   ],
   providers: [DatePipe],
@@ -41,6 +41,12 @@ export class TaskDetailPage implements OnInit {
   readonly isSubmittingReview = signal(false);
   readonly isFinalizing = signal(false);
   readonly sessionTasks = signal<AgentTask[]>([]);
+
+  // ─── Sonnet 4.6 confirm-before-send signals ───
+  readonly sonnetPreviewPrompt = signal<string | null>(null);
+  readonly editablePrompt = signal('');
+  readonly isPlanningWithClaude = signal(false);
+  readonly planResult = signal<PlanExecuteResult | null>(null);
 
   readonly statusColor = statusColor;
 
@@ -87,9 +93,14 @@ export class TaskDetailPage implements OnInit {
     this.taskService.processTask(t.id).subscribe({
       next: async (res) => {
         this.task.update((prev) => prev ? { ...prev, vault_note: res.vault_note, review_due: res.review_due } : prev);
+        // Set up Sonnet confirm panel if server returned a preview prompt
+        if (res.sonnet_preview_prompt) {
+          this.sonnetPreviewPrompt.set(res.sonnet_preview_prompt);
+          this.editablePrompt.set(res.sonnet_preview_prompt);
+        }
         const toast = await this.toastController.create({
-          message: 'Task queued for processing',
-          duration: 2000,
+          message: res.sonnet_preview_prompt ? 'Vault doc created — review prompt below' : 'Task queued for processing',
+          duration: 2500,
           color: 'success',
         });
         await toast.present();
@@ -222,7 +233,7 @@ export class TaskDetailPage implements OnInit {
   }
 
   constructor() {
-    addIcons({ documentTextOutline, openOutline, chatbubbleOutline, leafOutline, gitBranchOutline });
+    addIcons({ chatbubbleOutline, closeOutline, documentTextOutline, gitBranchOutline, leafOutline, openOutline, sparklesOutline });
   }
 
   formatDate(ts?: string | number): string {
@@ -234,5 +245,43 @@ export class TaskDetailPage implements OnInit {
   frontmatterEntries(): [string, unknown][] {
     const fm = this.frontmatter();
     return fm ? Object.entries(fm) : [];
+  }
+
+  /** Send the (optionally edited) prompt to Claude Sonnet 4.6 and display the result. */
+  async runWithClaude(): Promise<void> {
+    const t = this.task();
+    if (!t || this.isPlanningWithClaude()) return;
+    const prompt = this.editablePrompt().trim();
+    this.isPlanningWithClaude.set(true);
+    this.taskService.planTask(t.id, prompt || undefined).subscribe({
+      next: async (result) => {
+        this.planResult.set(result);
+        this.sonnetPreviewPrompt.set(null);
+        this.task.update((prev) => prev ? { ...prev, status: 'done' } : prev);
+        if (result.vault_note) {
+          // Refresh vault markdown with the patched Output section
+          this.taskService.getVaultDoc(t.id).subscribe({
+            next: (r) => setTimeout(() => this.vaultMarkdown.set(r.markdown), 0),
+            error: () => undefined,
+          });
+        }
+        const toast = await this.toastController.create({
+          message: 'Claude responded — result saved to vault',
+          duration: 3000,
+          color: 'primary',
+        });
+        await toast.present();
+      },
+      error: async (err) => {
+        const detail = err?.error?.error ?? 'Claude API call failed';
+        const toast = await this.toastController.create({
+          message: detail,
+          duration: 3000,
+          color: 'danger',
+        });
+        await toast.present();
+      },
+      complete: () => this.isPlanningWithClaude.set(false),
+    });
   }
 }

@@ -36,6 +36,30 @@ export class DashboardPage implements OnInit {
   readonly tasksByChannel = signal<Record<string, AgentTask[] | undefined>>({});
   readonly statusColor = statusColor;
 
+  // Status filters — default shows running + ready-for-review
+  readonly statusFilters = signal<Set<string>>(new Set(['running', 'in_review']));
+
+  readonly activeFilters = computed(() => {
+    const f = this.statusFilters();
+    return {
+      pending:   f.has('pending'),
+      running:   f.has('running'),
+      in_review: f.has('in_review'),
+      done:      f.has('done'),
+    };
+  });
+
+  readonly filteredTasksByChannel = computed(() => {
+    const filters = this.statusFilters();
+    const all = this.tasksByChannel();
+    if (filters.size === 0) return all; // no filter = show all
+    const result: Record<string, AgentTask[]> = {};
+    for (const [chId, tasks] of Object.entries(all)) {
+      result[chId] = (tasks ?? []).filter(t => filters.has(t.status));
+    }
+    return result;
+  });
+
   private readonly router = inject(Router);
   private readonly taskService = inject(TaskService);
   private readonly modalController = inject(ModalController);
@@ -84,6 +108,23 @@ export class DashboardPage implements OnInit {
 
   toggleView(): void {
     this.view.update((v) => (v === 'kanban' ? 'list' : 'kanban'));
+  }
+
+  toggleFilter(status: string): void {
+    this.statusFilters.update(f => {
+      const next = new Set(f);
+      if (next.has(status)) {
+        next.delete(status);
+      } else {
+        next.add(status);
+      }
+      return next;
+    });
+  }
+
+  /** "total" button: clear all filters (show everything) */
+  toggleAllFilters(): void {
+    this.statusFilters.set(new Set());
   }
 
   openTask(id: string): void {

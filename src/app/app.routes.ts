@@ -30,6 +30,10 @@ export const routes: Routes = [
     loadComponent: () => import('./haiku-leaderboard/haiku-leaderboard.page').then((m) => m.HaikuLeaderboardPage),
   },
   {
+    path: 'youtube-agent',
+    loadComponent: () => import('./youtube-agent/youtube-agent.page').then((m) => m.YoutubeAgentPage),
+  },
+  {
     path: '',
     redirectTo: 'dashboard',
     pathMatch: 'full',

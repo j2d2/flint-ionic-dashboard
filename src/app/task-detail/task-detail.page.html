@@ -42,7 +42,11 @@
         </ion-row>
         <ion-row *ngIf="currentTask.tags">
           <ion-col size="5" class="spec-key">Tags</ion-col>
-          <ion-col size="7">{{ currentTask.tags }}</ion-col>
+          <ion-col size="7" class="tags-col">
+            <ion-chip *ngFor="let tag of currentTask.tags!.split(',')" size="small" class="tag-chip">
+              {{ tag.trim() }}
+            </ion-chip>
+          </ion-col>
         </ion-row>
       </ion-grid>
     </ion-card-content>
@@ -96,6 +100,48 @@
     *ngIf="!currentTask.review_due">
     {{ isProcessing() ? 'Processing...' : 'Process Task' }}
   </ion-button>
+
+  <!-- ─── Sonnet 4.6 confirm panel (shown after Process returns a preview prompt) ─── -->
+  <ion-card *ngIf="sonnetPreviewPrompt()" class="sonnet-confirm-card ion-margin-top">
+    <ion-card-header>
+      <ion-card-subtitle>Vault doc created ✓ &middot; Review before sending to Claude Sonnet 4.6</ion-card-subtitle>
+      <ion-card-title>Edit &amp; Confirm Prompt</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-textarea
+        [value]="editablePrompt()"
+        (ionInput)="editablePrompt.set($any($event.detail.value) ?? '')"
+        rows="8"
+        [autoGrow]="false"
+        class="prompt-textarea">
+      </ion-textarea>
+      <ion-button expand="block" color="primary" class="ion-margin-top"
+        [disabled]="isPlanningWithClaude()"
+        (click)="runWithClaude()">
+        <ion-icon slot="start" name="sparkles-outline"></ion-icon>
+        {{ isPlanningWithClaude() ? 'Asking Claude…' : 'Send to Claude Sonnet 4.6' }}
+      </ion-button>
+      <ion-button expand="block" fill="outline" color="medium" class="ion-margin-top"
+        (click)="sonnetPreviewPrompt.set(null)">
+        <ion-icon slot="start" name="close-outline"></ion-icon>
+        Cancel
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- ─── Claude plan result card ─── -->
+  <ion-card *ngIf="planResult()" class="plan-result-card ion-margin-top">
+    <ion-card-header>
+      <ion-card-subtitle>
+        {{ planResult()!.model_used }}
+        <span *ngIf="planResult()!.cost_usd !== undefined">&middot; ${{ planResult()!.cost_usd | number:'1.4-4' }}</span>
+      </ion-card-subtitle>
+      <ion-card-title>Claude’s Response</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <div [innerHTML]="planResult()!.plan_text | markdownHtml" class="md-content"></div>
+    </ion-card-content>
+  </ion-card>
 
   <!-- Submit for Review: visible while task is not yet in_review or done/failed -->
   <ion-button

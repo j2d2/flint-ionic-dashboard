@@ -23,6 +23,7 @@ import { addIcons } from 'ionicons';
 import {
   addCircleOutline,
   addOutline,
+  logoYoutube,
   chatbubbleEllipsesOutline,
   chatbubbleOutline,
   chevronDownOutline,
@@ -76,8 +77,9 @@ import { TaskService } from './services/task.service';
 })
 export class AppComponent implements OnInit {
   readonly appPages = [
-    { title: 'Agent Tasks', url: '/agent-tasks', icon: 'flash-outline' },
-    { title: 'Chat',        url: '/chat',        icon: 'chatbubble-outline' },
+    { title: 'Agent Tasks',   url: '/agent-tasks',    icon: 'flash-outline' },
+    { title: 'Chat',          url: '/chat',            icon: 'chatbubble-outline' },
+    { title: 'YouTube Agent', url: '/youtube-agent',   icon: 'logo-youtube' },
   ];
 
   readonly channels: Channel[] = DEFAULT_CHANNELS;
@@ -113,6 +115,7 @@ export class AppComponent implements OnInit {
       sendOutline,
       telescopeOutline,
       trophyOutline,
+      logoYoutube,
     });
   }
 

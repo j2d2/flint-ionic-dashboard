@@ -3,7 +3,7 @@
  */
 import { Router, Request, Response } from 'express';
 import * as flint from '../services/flintMcp';
-import { readFrontmatter, readVaultDocBody } from '../services/vaultReader';
+import { readFrontmatter, readVaultDocBody, patchVaultOutput } from '../services/vaultReader';
 import { AgentTaskPatch, NewTaskPayload } from '../types/AgentTask';
 
 export const tasksRouter = Router();
@@ -159,8 +159,12 @@ tasksRouter.post('/:id/process', async (req: Request, res: Response) => {
       return;
     }
 
+    // Build preview prompt for Sonnet confirmation step
+    const taskForPrompt = await flint.getTask(taskId);
+    const sonnetPreviewPrompt = taskForPrompt ? flint.buildPlanPrompt(taskForPrompt) : '';
+
     // Respond immediately; haiku generation runs in the background
-    res.json({ ...result, haiku_pending: result.vault_note_created });
+    res.json({ ...result, haiku_pending: result.vault_note_created, sonnet_preview_prompt: sonnetPreviewPrompt });
 
     // Background: generate + register a haiku only on first process
     if (result.vault_note_created) {
@@ -187,6 +191,41 @@ tasksRouter.post('/:id/process', async (req: Request, res: Response) => {
         }
       })();
     }
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+// POST /api/tasks/:id/plan — send prompt to Claude Sonnet 4.6, patch vault doc output
+tasksRouter.post('/:id/plan', async (req: Request, res: Response) => {
+  try {
+    const taskId = req.params.id;
+    const { prompt } = req.body as { prompt?: string };
+
+    const task = await flint.getTask(taskId);
+    if (!task) {
+      res.status(404).json({ error: `Task not found: ${taskId}` });
+      return;
+    }
+
+    const planPrompt = prompt?.trim() || flint.buildPlanPrompt(task);
+    const claudeResult = await flint.queryClaudeForPlan(planPrompt);
+
+    // Patch vault doc ## Output section with Claude's plan
+    if (task.vault_note) {
+      patchVaultOutput(task.vault_note, claudeResult.response);
+    }
+
+    // Save plan text as task output (move to done)
+    await flint.updateTaskStatus(taskId, 'done', claudeResult.response.slice(0, 2000));
+
+    res.json({
+      task_id: taskId,
+      plan_text: claudeResult.response,
+      model_used: claudeResult.model,
+      cost_usd: claudeResult.cost_estimate_usd,
+      vault_note: task.vault_note,
+    });
   } catch (err) {
     res.status(500).json({ error: (err as Error).message });
   }

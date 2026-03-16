@@ -91,6 +91,36 @@ function parseYamlFrontmatter(lines: string[]): Record<string, unknown> {
 }
 
 /**
+ * Patch the ## Output section of a vault doc with the provided markdown.
+ * Replaces the "_Awaiting processing._" placeholder, or the whole ## Output body,
+ * or appends a new ## Output section if none exists.
+ * Returns true on success.
+ */
+export function patchVaultOutput(vaultRelativePath: string, outputMarkdown: string): boolean {
+  if (!vaultRelativePath) return false;
+  const fullPath = path.resolve(vaultRoot(), vaultRelativePath);
+  const root = path.resolve(vaultRoot());
+  if (!fullPath.startsWith(root + path.sep)) return false;
+
+  try {
+    const content = fs.readFileSync(fullPath, 'utf-8');
+    const placeholder = '_Awaiting processing._';
+    let updated: string;
+    if (content.includes(placeholder)) {
+      updated = content.replace(placeholder, outputMarkdown.trim());
+    } else if (content.includes('\n## Output\n')) {
+      updated = content.replace(/\n## Output\n[\s\S]*$/, `\n## Output\n\n${outputMarkdown.trim()}\n`);
+    } else {
+      updated = content.trimEnd() + `\n\n## Output\n\n${outputMarkdown.trim()}\n`;
+    }
+    fs.writeFileSync(fullPath, updated, 'utf-8');
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Read the full markdown content of a vault doc (body only, frontmatter stripped).
  * Returns null if file not found or path escapes vault root.
  */

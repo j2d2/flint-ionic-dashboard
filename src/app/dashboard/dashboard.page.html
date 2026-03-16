@@ -16,15 +16,32 @@
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
-  <!-- Queue stats strip — inside header so ion-content height is calculated correctly -->
+  <!-- Queue stats strip — click to filter kanban by status -->
   <div class="stats-bar" *ngIf="stats()">
-    <span class="stat stat--pending">{{ (stats()!.by_status['pending'] || 0) }} pending</span>
+    <button class="stat stat--pending" [class.stat--active]="activeFilters().pending"
+            (click)="toggleFilter('pending')" title="Filter: pending">
+      {{ (stats()!.by_status['pending'] || 0) }} pending
+    </button>
     <span class="stat-sep">&middot;</span>
-    <span class="stat stat--running">{{ (stats()!.by_status['running'] || 0) }} running</span>
+    <button class="stat stat--running" [class.stat--active]="activeFilters().running"
+            (click)="toggleFilter('running')" title="Filter: running">
+      {{ (stats()!.by_status['running'] || 0) }} running
+    </button>
     <span class="stat-sep">&middot;</span>
-    <span class="stat stat--done">{{ (stats()!.by_status['done'] || 0) }} done</span>
+    <button class="stat stat--review" [class.stat--active]="activeFilters().in_review"
+            (click)="toggleFilter('in_review')" title="Filter: ready for review">
+      {{ (stats()!.by_status['in_review'] || 0) }} ready for review
+    </button>
     <span class="stat-sep">&middot;</span>
-    <span class="stat stat--total">{{ stats()!.total }} total</span>
+    <button class="stat stat--done" [class.stat--active]="activeFilters().done"
+            (click)="toggleFilter('done')" title="Filter: done">
+      {{ (stats()!.by_status['done'] || 0) }} done
+    </button>
+    <span class="stat-sep">&middot;</span>
+    <button class="stat stat--total" [class.stat--active]="statusFilters().size === 0"
+            (click)="toggleAllFilters()" title="Show all">
+      {{ stats()!.total }} total
+    </button>
   </div>
 </ion-header>
 
@@ -39,17 +56,17 @@
       <div class="col-header">
         <ion-icon [name]="ch.icon" [color]="ch.color"></ion-icon>
         <span class="col-title">{{ ch.name }}</span>
-        <ion-badge color="medium" class="thread-count">{{ (tasksByChannel()[ch.id] ?? []).length }}</ion-badge>
+        <ion-badge color="medium" class="thread-count">{{ (filteredTasksByChannel()[ch.id] ?? []).length }}</ion-badge>
         <ion-button size="small" fill="clear" class="col-add" (click)="newThread(ch.id)" aria-label="New thread">
           <ion-icon slot="icon-only" name="add-circle-outline"></ion-icon>
         </ion-button>
       </div>
       <div class="col-body">
-        <div class="task-card" *ngFor="let t of (tasksByChannel()[ch.id] ?? [])" (click)="openTask(t.id)">
+        <div class="task-card" *ngFor="let t of (filteredTasksByChannel()[ch.id] ?? [])" (click)="openTask(t.id)">
           <ion-badge [color]="statusColor(t.status)" class="task-status-badge">{{ t.status }}</ion-badge>
           <p class="task-card-title">{{ t.title }}</p>
         </div>
-        <div class="empty-col" *ngIf="!(tasksByChannel()[ch.id]?.length)">
+        <div class="empty-col" *ngIf="!(filteredTasksByChannel()[ch.id]?.length)">
           <ion-icon name="git-branch-outline" class="empty-icon"></ion-icon>
           <p>No threads yet</p>
           <p class="empty-desc">{{ ch.description }}</p>

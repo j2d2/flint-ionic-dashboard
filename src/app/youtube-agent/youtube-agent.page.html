@@ -1,0 +1,315 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>
+      <ion-icon name="logo-youtube" color="danger" class="title-icon"></ion-icon>
+      YouTube Agent
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="youtube-content">
+
+  <!-- ── URL input ─────────────────────────────────────────── -->
+  <div class="url-section">
+    <ion-card class="url-card">
+      <ion-card-content>
+        <ion-item lines="none" class="url-item">
+          <ion-icon slot="start" name="logo-youtube" color="danger"></ion-icon>
+          <ion-input
+            type="url"
+            placeholder="Paste a YouTube URL…"
+            [value]="url()"
+            (ionInput)="url.set($any($event.detail.value) ?? '')"
+            (keydown.enter)="analyze()"
+            clearInput="true"
+            class="url-input"
+          ></ion-input>
+        </ion-item>
+
+        <ion-button
+          expand="block"
+          [disabled]="!url().trim() || isLoading()"
+          (click)="analyze()"
+          class="analyze-btn"
+        >
+          @if (isLoading()) {
+            <ion-spinner slot="start" name="crescent"></ion-spinner>
+            Analyzing…
+          } @else {
+            Analyze
+          }
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- ── Loading stages ────────────────────────────────────── -->
+  @if (isLoading()) {
+    <div class="stages-section">
+      @for (stage of stages(); track stage.label) {
+        <div
+          class="stage-item"
+          [class.stage--active]="stage.active"
+          [class.stage--done]="stage.done"
+        >
+          @if (stage.done) {
+            <ion-icon name="checkmark-circle-outline" color="success"></ion-icon>
+          } @else if (stage.active) {
+            <ion-spinner name="crescent" class="stage-spinner"></ion-spinner>
+          } @else {
+            <ion-icon name="ellipse-outline" color="medium"></ion-icon>
+          }
+          <span>{{ stage.label }}</span>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ── Error banner ──────────────────────────────────────── -->
+  @if (error()) {
+    <ion-card class="error-card">
+      <ion-card-content>
+        <ion-icon name="warning-outline" color="danger"></ion-icon>
+        {{ error() }}
+      </ion-card-content>
+    </ion-card>
+  }
+
+  <!-- ── Results ───────────────────────────────────────────── -->
+  @if (result(); as res) {
+    <div class="results-section">
+
+      <!-- Video info card -->
+      <ion-card class="video-card">
+        <ion-card-header>
+          <ion-card-subtitle class="video-meta">
+            @if (res.brief.channel) { {{ res.brief.channel }} }
+            @if (res.brief.duration_seconds) { · {{ formatDuration(res.brief.duration_seconds) }} }
+            @if (res.brief.published) { · {{ res.brief.published }} }
+          </ion-card-subtitle>
+          <ion-card-title>{{ res.brief.title }}</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <p class="tldr">{{ res.brief.tldr }}</p>
+          <a
+            [href]="'https://www.youtube.com/watch?v=' + res.video_id"
+            target="_blank"
+            rel="noopener"
+            class="video-link"
+          >
+            <ion-icon name="logo-youtube" color="danger"></ion-icon>
+            Watch on YouTube
+          </a>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Haiku card -->
+      <ion-card class="haiku-card">
+        <ion-card-header>
+          <ion-card-title class="haiku-title">
+            <ion-icon name="ribbon-outline"></ion-icon>
+            Haiku
+          </ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <div class="haiku-text">
+            @for (line of haikuLines(); track $index) {
+              <p class="haiku-line">{{ line }}</p>
+            }
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Key takeaways -->
+      @if (res.brief.key_takeaways?.length) {
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>Key Takeaways</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <ol class="takeaways-list">
+              @for (item of res.brief.key_takeaways; track $index) {
+                <li>{{ item }}</li>
+              }
+            </ol>
+          </ion-card-content>
+        </ion-card>
+      }
+
+      <!-- Credibility signals -->
+      @if (res.brief.credibility_signals?.expert_claims?.length || res.brief.credibility_signals?.red_flags?.length) {
+        <ion-card class="credibility-card">
+          <ion-card-header>
+            <ion-card-title>Credibility Signals</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            @if (res.brief.credibility_signals.has_citations) {
+              <ion-chip color="success">
+                <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+                Has Citations
+              </ion-chip>
+            }
+            @if (res.brief.credibility_signals.red_flags?.length) {
+              <div class="red-flags">
+                <strong>Red Flags:</strong>
+                @for (flag of res.brief.credibility_signals.red_flags; track $index) {
+                  <p class="red-flag">⚠ {{ flag }}</p>
+                }
+              </div>
+            }
+          </ion-card-content>
+        </ion-card>
+      }
+
+      <!-- Swarm tasks -->
+      @if (res.proposed_tasks?.length) {
+        <ion-card class="tasks-card">
+          <ion-card-header>
+            <ion-card-subtitle>Select tasks to add to the agent queue</ion-card-subtitle>
+            <ion-card-title>
+              <ion-icon name="flash-outline"></ion-icon>
+              Swarm Tasks
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <ion-list class="tasks-list" lines="none">
+              @for (task of res.proposed_tasks; track task.id ?? $index) {
+                <ion-item
+                  class="task-item"
+                  [class.task--selected]="selectedTaskIds().has(task.id ?? task.title)"
+                >
+                  <ion-checkbox
+                    slot="start"
+                    [checked]="selectedTaskIds().has(task.id ?? task.title)"
+                    (ionChange)="toggleTask(task)"
+                  ></ion-checkbox>
+                  <ion-label>
+                    <h3>{{ task.title }}</h3>
+                    <p>{{ task.description }}</p>
+                    <div class="task-badges">
+                      <ion-badge [color]="taskTypeColor(task.type)" class="type-badge">
+                        {{ task.type }}
+                      </ion-badge>
+                      <ion-badge [color]="priorityColor(task.priority)" class="priority-badge">
+                        P{{ task.priority }}
+                      </ion-badge>
+                      @if (task.estimated_effort) {
+                        <ion-badge color="medium" class="effort-badge">
+                          {{ task.estimated_effort }}
+                        </ion-badge>
+                      }
+                    </div>
+                  </ion-label>
+                </ion-item>
+              }
+            </ion-list>
+
+            <ion-button
+              expand="block"
+              color="success"
+              class="queue-btn"
+              [disabled]="selectedTaskIds().size === 0 || isQueuing()"
+              (click)="queueSelected()"
+            >
+              @if (isQueuing()) {
+                <ion-spinner slot="start" name="crescent"></ion-spinner>
+                Queuing…
+              } @else {
+                Queue {{ selectedTaskIds().size ? selectedTaskIds().size + ' ' : '' }}Task{{ selectedTaskIds().size === 1 ? '' : 's' }} to Swarm
+              }
+            </ion-button>
+
+            @if (queueResult()) {
+              <div class="queue-success">
+                <ion-icon name="checkmark-circle-outline" color="success"></ion-icon>
+                {{ queueResult()!.queued_count }} task{{ queueResult()!.queued_count === 1 ? '' : 's' }} queued with tag: youtube
+              </div>
+            }
+          </ion-card-content>
+        </ion-card>
+      }
+
+      <!-- References -->
+      @if (hasReferences()) {
+        <ion-card class="references-card">
+          <ion-card-header>
+            <ion-card-title>References</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+
+            @if (res.brief.references.people?.length) {
+              <div class="ref-group">
+                <h4 class="ref-group-title">People</h4>
+                <div class="chip-row">
+                  @for (p of res.brief.references.people; track p) {
+                    <ion-chip>{{ p }}</ion-chip>
+                  }
+                </div>
+              </div>
+            }
+
+            @if (res.brief.references.tools_and_products?.length) {
+              <div class="ref-group">
+                <h4 class="ref-group-title">Tools &amp; Products</h4>
+                <div class="chip-row">
+                  @for (t of res.brief.references.tools_and_products; track t) {
+                    <ion-chip color="tertiary">{{ t }}</ion-chip>
+                  }
+                </div>
+              </div>
+            }
+
+            @if (res.brief.references.concepts?.length) {
+              <div class="ref-group">
+                <h4 class="ref-group-title">Concepts</h4>
+                <div class="chip-row">
+                  @for (c of res.brief.references.concepts; track c) {
+                    <ion-chip color="secondary">{{ c }}</ion-chip>
+                  }
+                </div>
+              </div>
+            }
+
+            @if (res.brief.references.books?.length) {
+              <div class="ref-group">
+                <h4 class="ref-group-title">Books</h4>
+                @for (b of res.brief.references.books; track b) {
+                  <p class="ref-book">📚 {{ b }}</p>
+                }
+              </div>
+            }
+
+            @if (res.brief.references.urls?.length) {
+              <div class="ref-group">
+                <h4 class="ref-group-title">Links</h4>
+                @for (u of res.brief.references.urls; track u) {
+                  <p class="ref-url">
+                    <a [href]="u" target="_blank" rel="noopener">{{ u }}</a>
+                  </p>
+                }
+              </div>
+            }
+
+          </ion-card-content>
+        </ion-card>
+      }
+
+    </div>
+  }
+
+  <!-- Empty state -->
+  @if (!isLoading() && !result() && !error()) {
+    <div class="empty-state">
+      <ion-icon name="logo-youtube" class="empty-icon" color="danger"></ion-icon>
+      <p class="empty-title">Paste a YouTube link above</p>
+      <p class="empty-hint">
+        The agent will pull the transcript, summarize it, write a haiku,
+        and propose follow-up tasks for the swarm.
+      </p>
+    </div>
+  }
+
+</ion-content>

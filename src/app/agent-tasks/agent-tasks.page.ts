@@ -11,6 +11,7 @@ import {
 import { Subscription } from 'rxjs';
 
 import { AgentTask, parseTaskDate, statusColor } from '../models/agent-task.model';
+import { ChipScrollComponent } from '../shared/chip-scroll/chip-scroll.component';
 import { NewThreadModalComponent } from '../new-thread/new-thread-modal.component';
 import { SocketService } from '../services/socket.service';
 import { TaskService } from '../services/task.service';
@@ -31,6 +32,7 @@ const PAGE_SIZE = 200;
     IonHeader, IonIcon, IonInfiniteScroll, IonInfiniteScrollContent, IonItem,
     IonLabel, IonList, IonMenuButton, IonNote, IonPopover, IonRefresher,
     IonRefresherContent, IonSearchbar, IonSegment, IonSegmentButton, IonTitle, IonToolbar,
+    ChipScrollComponent,
   ],
   providers: [DatePipe],
 })
@@ -45,9 +47,30 @@ export class AgentTasksPage implements OnInit, OnDestroy {
   readonly sortBy = signal<'priority' | 'updated'>('updated');
   readonly searchOpen = signal(false);
   readonly searchQuery = signal('');
+  readonly activeTagFilter = signal<string | null>(null);
 
   readonly sortLabel = computed(() => this.sortBy() === 'updated' ? 'Recent' : 'Priority');
   readonly reviewDueCount = computed(() => this.tasks().filter((t) => t.status === 'in_review' || t.review_due === 1).length);
+  readonly allTags = computed(() => {
+    const seen = new Set<string>();
+    for (const t of this.tasks()) {
+      if (t.tags) this.parseTags(t.tags).forEach((s) => seen.add(s));
+    }
+    return Array.from(seen).sort();
+  });
+
+  /** Parse tags stored as CSV or JSON array (e.g. '["foo","bar"]' or 'foo,bar') */
+  parseTags(raw: string): string[] {
+    if (!raw) return [];
+    const trimmed = raw.trim();
+    if (trimmed.startsWith('[')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) return parsed.map(String).map((s) => s.trim()).filter(Boolean);
+      } catch { /* fall through to CSV */ }
+    }
+    return trimmed.split(',').map((s) => s.trim()).filter(Boolean);
+  }
 
   private offset = 0;
   private allLoaded = false;
@@ -55,6 +78,7 @@ export class AgentTasksPage implements OnInit, OnDestroy {
   readonly filteredTasks = computed(() => {
     const f = this.filter();
     const q = this.searchQuery().trim().toLowerCase();
+    const activeTag = this.activeTagFilter();
     let list =
       f === 'all' ? this.tasks() :
       f === 'review' ? this.tasks().filter((t) => t.status === 'in_review' || t.review_due === 1) :
@@ -63,6 +87,11 @@ export class AgentTasksPage implements OnInit, OnDestroy {
       list = list.filter((t) =>
         t.title.toLowerCase().includes(q) ||
         (t.task_type ?? '').toLowerCase().includes(q)
+      );
+    }
+    if (activeTag) {
+      list = list.filter((t) =>
+        t.tags ? this.parseTags(t.tags).includes(activeTag) : false
       );
     }
     // Pre-compute timestamps once per item so parseTaskDate() is called O(n)
@@ -94,6 +123,12 @@ export class AgentTasksPage implements OnInit, OnDestroy {
 
   priorityLabel(p: number): string {
     return `P${p}`;
+  }
+
+  /** e.g. "Projects/Tasks/my-task-doc.md" → "my-task-doc" */
+  vaultNoteLabel(vaultNote: string): string {
+    const base = vaultNote.split('/').pop() ?? vaultNote;
+    return base.endsWith('.md') ? base.slice(0, -3) : base;
   }
 
   private readonly router = inject(Router);
@@ -178,6 +213,10 @@ export class AgentTasksPage implements OnInit, OnDestroy {
   toggleSearch(): void {
     this.searchOpen.update((v) => !v);
     if (!this.searchOpen()) this.searchQuery.set('');
+  }
+
+  toggleTagFilter(tag: string): void {
+    this.activeTagFilter.update((current) => current === tag ? null : tag);
   }
 
   async openNewAgentTask(): Promise<void> {

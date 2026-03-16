@@ -21,6 +21,8 @@ export interface AgentTask {
   output?: string;
   model_used?: string;
   confidence?: number;
+  child_count?: number;           // total child session_tasks
+  done_children?: number;         // child session_tasks with status=done
   archived_at?: number;
   created_at: number;           // unix timestamp
   updated_at: number;
@@ -80,6 +82,14 @@ export interface PlanResult {
   did_escalate: boolean;
   steps_parsed: number;
   children: Array<{ task_id: string; parent_task_id: string; title: string }>;
+}
+
+export interface PlanExecuteResult {
+  task_id: string;
+  plan_text: string;
+  model_used: string;
+  cost_usd?: number;
+  vault_note?: string;
 }
 
 export interface ThreadEvent {

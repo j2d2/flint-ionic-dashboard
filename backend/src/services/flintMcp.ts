@@ -369,6 +369,47 @@ export async function routeAndQuery(prompt: string): Promise<{
   }>;
 }
 
+// ---------------------------------------------------------------------------
+// Claude Sonnet plan generation — always escalates, no local fallback.
+// ---------------------------------------------------------------------------
+const SONNET_PLAN_SYSTEM =
+  `You are the orchestrator of a local AI agent swarm (Flint/OpenClaw).
+` +
+  `Given a task, produce a concrete, numbered implementation plan.\n\n` +
+  `Rules:\n` +
+  `- Output numbered sections (## 1. Title) immediately — no preamble.\n` +
+  `- Each section = one executable sub-task: name files, tools, commands.\n` +
+  `- 3–7 steps. Each title ≤ 10 words. Each body ≤ 3 sentences.\n` +
+  `- No meta-commentary, no "here is my plan", no closing summary.`;
+
+export function buildPlanPrompt(task: AgentTask): string {
+  return [
+    `Task: ${task.title}`,
+    `Type: ${task.task_type}  Priority: P${task.priority}`,
+    task.tags ? `Tags: ${task.tags}` : '',
+    task.description ? `\nDescription:\n${task.description.slice(0, 800)}` : '',
+    '\nProduce an implementation plan with specific file paths, tools, and commands.',
+  ].filter(Boolean).join('\n').trim();
+}
+
+export async function queryClaudeForPlan(
+  prompt: string,
+  maxTokens = 2048,
+): Promise<{ response: string; model: string; cost_estimate_usd?: number }> {
+  const r = await callTool('query_claude_api', {
+    prompt,
+    system: SONNET_PLAN_SYSTEM,
+    max_tokens: maxTokens,
+  });
+  const obj = r as Record<string, unknown>;
+  if (!obj.response && !obj.text) throw new Error('Claude API returned empty response');
+  return {
+    response: String(obj.response ?? obj.text ?? ''),
+    model: String(obj.model ?? 'claude-sonnet-4-6'),
+    cost_estimate_usd: typeof obj.cost_estimate_usd === 'number' ? obj.cost_estimate_usd : undefined,
+  };
+}
+
 /** Direct model call — bypasses routing, uses the specified model. */
 export async function queryModel(prompt: string, model: string): Promise<{
   response: string;

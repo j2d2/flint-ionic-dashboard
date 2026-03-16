@@ -7,6 +7,7 @@ import {
   AgentTaskPatch,
   HaikuEntry,
   NewTaskPayload,
+  PlanExecuteResult,
   QueueStats,
 } from '../models/agent-task.model';
 
@@ -59,11 +60,16 @@ export class TaskService {
     return this.http.patch<AgentTask>(`/api/tasks/${id}`, patch);
   }
 
-  processTask(id: string): Observable<{ vault_note: string; review_due: number }> {
-    return this.http.post<{ vault_note: string; review_due: number }>(
+  processTask(id: string): Observable<{ vault_note: string; review_due: number; haiku_pending?: boolean; sonnet_preview_prompt?: string }> {
+    return this.http.post<{ vault_note: string; review_due: number; haiku_pending?: boolean; sonnet_preview_prompt?: string }>(
       `/api/tasks/${id}/process`,
       {}
     );
+  }
+
+  /** Send the (optionally edited) prompt to Claude Sonnet 4.6 via the /plan endpoint. */
+  planTask(id: string, prompt?: string): Observable<PlanExecuteResult> {
+    return this.http.post<PlanExecuteResult>(`/api/tasks/${id}/plan`, { prompt });
   }
 
   /** Move agent_task to in_review — required before finalization. */

@@ -1,0 +1,10 @@
+<div class="chip-scroll-track">
+  <ion-chip
+    *ngFor="let tag of tags"
+    [color]="activeTag === tag ? 'primary' : 'medium'"
+    [outline]="activeTag !== tag"
+    (click)="tagClick.emit(tag)"
+    class="scroll-chip">
+    {{ tag }}
+  </ion-chip>
+</div>

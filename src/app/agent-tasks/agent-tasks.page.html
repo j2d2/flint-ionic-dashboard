@@ -49,6 +49,15 @@
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
+  @if (allTags().length > 0) {
+  <ion-toolbar class="tag-filter-bar">
+    <app-chip-scroll
+      [tags]="allTags()"
+      [activeTag]="activeTagFilter()"
+      (tagClick)="toggleTagFilter($event)">
+    </app-chip-scroll>
+  </ion-toolbar>
+  }
 </ion-header>
 
 <ion-popover trigger="quick-add-trigger" triggerAction="click" [dismissOnSelect]="true" size="auto">
@@ -81,20 +90,46 @@
   <ion-list>
     <ion-item
       button
-      detail="true"
+      detail="false"
       *ngFor="let task of filteredTasks()"
-      (click)="openTask(task.id)">
+      (click)="openTask(task.id)"
+      class="task-item">
       <ion-label>
-        <h2>{{ task.title }}</h2>
-        <p>{{ task.task_type }} &middot; {{ task.model ?? '&mdash;' }}</p>
-        <p *ngIf="task.vault_note" class="vault-ref">
-          <ion-icon name="document-text-outline"></ion-icon>
-          {{ task.vault_note }}
-        </p>
+        <h2 class="task-title">{{ task.title }}</h2>
+        <div class="task-meta">
+          <span class="priority-inline" [attr.data-priority]="task.priority">P{{ task.priority }}</span>
+          <span class="dot">&middot;</span>
+          <span>{{ task.task_type }}</span>
+          <ng-container *ngIf="task.model_used">
+            <span class="dot">&middot;</span>
+            <span class="model-label">model:{{ task.model_used }}</span>
+          </ng-container>
+          <span class="dot">&middot;</span>
+          <ion-badge [color]="statusColor(task.status)" class="status-inline">{{ task.status }}</ion-badge>
+          <ng-container *ngIf="task.child_count">
+            <span class="dot">&middot;</span>
+            <span class="thread-progress">{{ task.done_children ?? 0 }}/{{ task.child_count }} threads</span>
+          </ng-container>
+          <ng-container *ngIf="task.tags">
+            <ng-container *ngFor="let tag of parseTags(task.tags)">
+              <span class="dot">&middot;</span>
+              <span
+                class="tag-pill"
+                [class.tag-pill--active]="activeTagFilter() === tag"
+                (click)="$event.stopPropagation(); toggleTagFilter(tag)">
+                {{ tag }}
+              </span>
+            </ng-container>
+          </ng-container>
+          <ng-container *ngIf="task.vault_note">
+            <span class="dot">&middot;</span>
+            <span class="vault-inline">
+              <ion-icon name="document-text-outline"></ion-icon>{{ vaultNoteLabel(task.vault_note) }}
+            </span>
+          </ng-container>
+        </div>
       </ion-label>
-      <ion-badge slot="end" [color]="priorityColor(task.priority)" class="priority-badge">{{ priorityLabel(task.priority) }}</ion-badge>
-      <ion-badge slot="end" [color]="statusColor(task.status)">{{ task.status }}</ion-badge>
-      <ion-note slot="end" class="ion-padding-start">{{ formatDate(task.updated_at) }}</ion-note>
+      <ion-note slot="end" class="date-note">{{ formatDate(task.updated_at) }}</ion-note>
     </ion-item>
   </ion-list>
 

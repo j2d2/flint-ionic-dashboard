@@ -1,14 +1,97 @@
-.vault-ref {
-  font-size: 11px;
-  opacity: 0.6;
-  display: flex;
-  align-items: center;
-  gap: 3px;
-
-  ion-icon { font-size: 12px; }
+.task-item {
+  --padding-top: 10px;
+  --padding-bottom: 10px;
+  align-items: flex-start;
 }
 
-.priority-badge { margin-inline-end: 4px; }
+.task-title {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.35;
+  white-space: normal;
+  margin-bottom: 4px;
+}
+
+.task-meta {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 3px;
+  font-size: 12px;
+  opacity: 0.7;
+  margin-top: 2px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+  // prevent ion-label from hard-wrapping this row
+  white-space: nowrap;
+}
+
+.dot {
+  opacity: 0.4;
+  margin: 0 1px;
+}
+
+.priority-inline {
+  font-weight: 600;
+  font-size: 11px;
+  &[data-priority="1"] { color: var(--ion-color-danger); }
+  &[data-priority="2"] { color: var(--ion-color-warning); }
+  &[data-priority="3"] { color: var(--ion-color-medium); }
+  &[data-priority="4"], &[data-priority="5"] { color: var(--ion-color-medium-shade); }
+}
+
+.status-inline {
+  font-size: 10px;
+  padding: 1px 5px;
+  vertical-align: middle;
+}
+
+.model-label {
+  font-style: italic;
+  opacity: 0.8;
+}
+
+.thread-progress {
+  font-size: 11px;
+  color: var(--ion-color-primary);
+}
+
+.tag-pill {
+  font-size: 11px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--ion-color-medium-tint);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  &--active {
+    background: var(--ion-color-primary);
+    color: var(--ion-color-primary-contrast);
+  }
+}
+
+.vault-inline {
+  font-size: 11px;
+  opacity: 0.7;
+  white-space: nowrap;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+
+  ion-icon { font-size: 11px; }
+}
+
+.date-note {
+  font-size: 11px;
+  opacity: 0.5;
+  white-space: nowrap;
+  align-self: flex-start;
+  padding-top: 2px;
+}
 
 .sort-label {
   font-size: 11px;
@@ -20,3 +103,15 @@
   font-size: 10px;
   padding: 2px 5px;
 }
+
+// ─── Tag chips ───────────────────────────────────────
+
+.tag-filter-bar {
+  --padding-top: 0;
+  --padding-bottom: 0;
+  --min-height: auto;
+  contain: none;
+  overflow: visible;
+}
+
+
