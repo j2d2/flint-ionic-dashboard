@@ -36,6 +36,8 @@ const ALLOWED_TOOLS = new Set([
   'list_haikus',
   'vote_haiku',
   'get_haiku_pair',
+  // Vault
+  'add_to_vault',
 ]);
 
 async function callTool(name: string, args: object): Promise<unknown> {
@@ -478,5 +480,25 @@ export async function registerHaiku(
 export async function getHaikuBySourceDoc(sourceDoc: string): Promise<HaikuEntry | null> {
   const { haikus } = await listHaikus(200, 'newest');
   return haikus.find(h => h.source_doc === sourceDoc) ?? null;
+}
+
+// ---------------------------------------------------------------------------
+// Vault helpers
+// ---------------------------------------------------------------------------
+
+/** Write a markdown document to the Obsidian vault via Flint. */
+export async function addToVault(
+  filename: string,
+  content: string,
+  folder = 'Inbox',
+): Promise<{ path: string; vault_path?: string; status?: string }> {
+  const r = await callTool('add_to_vault', { filename, content, folder });
+  const obj = r as Record<string, unknown>;
+  // Flint may return { path } or { vault_path } depending on version
+  return {
+    path: (obj.path ?? obj.vault_path ?? `${folder}/${filename}`) as string,
+    vault_path: obj.vault_path as string | undefined,
+    status: obj.status as string | undefined,
+  };
 }
 

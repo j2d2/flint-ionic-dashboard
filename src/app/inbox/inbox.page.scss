@@ -1,0 +1,273 @@
+:host {
+  display: block;
+}
+
+.title-badge {
+  margin-left: 8px;
+  font-size: 11px;
+  vertical-align: middle;
+}
+
+// Loading
+.loading-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+  gap: 12px;
+  color: var(--ion-color-medium);
+
+  p {
+    margin: 0;
+    font-size: 14px;
+  }
+}
+
+// Error banner
+.error-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 12px 16px;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--ion-color-danger-tint);
+  color: var(--ion-color-danger-contrast);
+
+  ion-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  p {
+    margin: 2px 0;
+    font-size: 13px;
+  }
+}
+
+// Meta bar
+.meta-bar {
+  margin: 4px 16px 0;
+  font-size: 12px;
+  color: var(--ion-color-medium);
+}
+
+// Account card
+.account-card {
+  margin: 12px 12px;
+}
+
+// Account header bar (single-account view)
+.acct-header-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--ion-color-light);
+  border-bottom: 1px solid var(--ion-color-light-shade);
+
+  ion-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .acct-email {
+    flex: 1;
+    font-size: 12px;
+    color: var(--ion-color-medium-shade);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .acct-unread-badge {
+    flex-shrink: 0;
+    font-size: 11px;
+  }
+}
+
+// Header pending badge
+.header-pending-badge {
+  font-size: 11px;
+  margin-right: 4px;
+}
+
+.empty-inbox {
+  margin: 12px 16px;
+  font-size: 13px;
+  color: var(--ion-color-medium);
+}
+
+// Message list
+.message-list {
+  margin: 0;
+}
+
+.msg-item {
+  --padding-start: 8px;
+  --inner-padding-end: 8px;
+
+  &.msg-unread {
+    --background: var(--ion-color-light);
+  }
+}
+
+.msg-status-icon {
+  font-size: 10px;
+  margin-right: 4px;
+}
+
+.msg-label {
+  h3 {
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    &.font-bold {
+      font-weight: 600;
+      color: var(--ion-text-color);
+    }
+  }
+
+  .msg-from {
+    font-size: 12px;
+    color: var(--ion-color-medium-shade);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
+  }
+
+  .msg-snippet {
+    font-size: 11px;
+    color: var(--ion-color-medium);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
+  }
+
+  // Tag suggestion / edit row
+  .tag-row {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-top: 5px;
+    flex-wrap: nowrap;
+  }
+
+  .enzo-chip {
+    font-size: 10px;
+    font-weight: 600;
+    height: 20px;
+    margin: 0;
+
+    &.enzo-chip--queued {
+      outline: 1.5px dashed currentColor;
+      outline-offset: 1px;
+    }
+
+    .queued-dot {
+      font-size: 8px;
+      opacity: 0.8;
+    }
+  }
+
+  .no-tag-hint {
+    font-size: 10px;
+    color: var(--ion-color-medium);
+    font-style: italic;
+    margin-right: 2px;
+  }
+
+  // Tiny icon buttons for tag actions
+  .tag-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--ion-color-medium);
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+
+    ion-icon {
+      font-size: 13px;
+    }
+
+    &:active {
+      background: var(--ion-color-light-shade);
+    }
+
+    &.tag-btn--confirm {
+      color: var(--ion-color-success);
+    }
+
+    &.tag-btn--cancel {
+      color: var(--ion-color-danger);
+    }
+  }
+
+  // Inline tag text input
+  .tag-input {
+    flex: 1;
+    min-width: 0;
+    max-width: 140px;
+    height: 22px;
+    padding: 0 6px;
+    border: 1px solid var(--ion-color-primary);
+    border-radius: 4px;
+    background: var(--ion-background-color);
+    color: var(--ion-text-color);
+    font-size: 11px;
+    outline: none;
+
+    &:focus {
+      border-color: var(--ion-color-primary-shade);
+      box-shadow: 0 0 0 2px var(--ion-color-primary-tint);
+    }
+  }
+}
+
+.msg-date {
+  font-size: 11px;
+  color: var(--ion-color-medium);
+  white-space: nowrap;
+  align-self: flex-start;
+  margin-top: 10px;
+}
+
+// Empty state
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 24px;
+  text-align: center;
+  color: var(--ion-color-medium);
+
+  ion-icon {
+    font-size: 56px;
+    margin-bottom: 16px;
+    opacity: 0.4;
+  }
+
+  h3 {
+    margin: 0 0 8px;
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+  }
+}

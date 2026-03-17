@@ -7,6 +7,7 @@ import {
   signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import {
   IonBadge,
   IonButton,
@@ -33,8 +34,10 @@ import {
 import { addIcons } from 'ionicons';
 import {
   checkmarkCircleOutline,
+  chatbubblesOutline,
   ellipseOutline,
   flashOutline,
+  libraryOutline,
   logoYoutube,
   ribbonOutline,
   warningOutline,
@@ -86,6 +89,7 @@ interface Stage {
 })
 export class YoutubeAgentPage implements OnDestroy {
   private readonly youtubeService = inject(YoutubeService);
+  private readonly router = inject(Router);
 
   readonly url = signal('');
   readonly isLoading = signal(false);
@@ -121,7 +125,34 @@ export class YoutubeAgentPage implements OnDestroy {
   });
 
   constructor() {
-    addIcons({ logoYoutube, flashOutline, checkmarkCircleOutline, ellipseOutline, ribbonOutline, warningOutline });
+    addIcons({ logoYoutube, flashOutline, checkmarkCircleOutline, ellipseOutline, ribbonOutline, warningOutline, chatbubblesOutline, libraryOutline });
+  }
+
+  openInChat(): void {
+    const r = this.result();
+    if (!r) return;
+    // Build markdown context to inject into the chat thread
+    const lines: string[] = [
+      `## ${r.brief.title ?? r.video_id}`,
+      `**Channel:** ${r.brief.channel ?? 'Unknown'}`,
+      '',
+      `**TL;DR:** ${r.brief.tldr ?? ''}`,
+      '',
+    ];
+    if (r.brief.key_takeaways?.length) {
+      lines.push('**Key Takeaways:**');
+      r.brief.key_takeaways.forEach(t => lines.push(`- ${t}`));
+      lines.push('');
+    }
+    if (r.vault_path) {
+      lines.push(`**Vault doc:** ${r.vault_path}`);
+    }
+    this.router.navigate(['/chat'], {
+      state: {
+        taskTitle: r.brief.title ?? r.video_id,
+        vaultMarkdown: lines.join('\n'),
+      },
+    });
   }
 
   ngOnDestroy(): void {

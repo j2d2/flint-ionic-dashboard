@@ -82,6 +82,157 @@
           </div>
         }
 
+        <!-- ─── Quick Category Accordions ─── -->
+
+        <!-- For Review -->
+        <div class="menu-section menu-accordion">
+          <button class="menu-accordion__header" (click)="forReviewOpen = !forReviewOpen">
+            <ion-icon name="eye-outline"></ion-icon>
+            <span class="menu-accordion__title">For Review</span>
+            @if (forReviewTasks().length) {
+              <ion-badge color="tertiary" class="menu-section__badge">{{ forReviewTasks().length }}</ion-badge>
+            }
+            <ion-icon [name]="forReviewOpen ? 'chevron-down-outline' : 'chevron-forward-outline'" class="menu-accordion__caret"></ion-icon>
+          </button>
+          @if (forReviewOpen) {
+            <ion-list class="menu-section__list">
+              @for (t of forReviewTasks(); track t.id) {
+                <ion-menu-toggle autoHide="false">
+                  <ion-item [routerLink]="['/task', t.id]" routerDirection="forward" button lines="none" class="sidebar-task-item sidebar-task-item--review">
+                    <ion-label><p class="sidebar-task-title">{{ t.title }}</p></ion-label>
+                  </ion-item>
+                </ion-menu-toggle>
+              }
+              @if (!forReviewTasks().length) {
+                <p class="menu-section__empty">Nothing in review</p>
+              }
+            </ion-list>
+          }
+        </div>
+
+        <!-- Blocked / Failed -->
+        <div class="menu-section menu-accordion">
+          <button class="menu-accordion__header" (click)="blockedOpen = !blockedOpen">
+            <ion-icon name="warning-outline"></ion-icon>
+            <span class="menu-accordion__title">Blocked / Failed</span>
+            @if (blockedTasks().length) {
+              <ion-badge color="danger" class="menu-section__badge">{{ blockedTasks().length }}</ion-badge>
+            }
+            <ion-icon [name]="blockedOpen ? 'chevron-down-outline' : 'chevron-forward-outline'" class="menu-accordion__caret"></ion-icon>
+          </button>
+          @if (blockedOpen) {
+            <ion-list class="menu-section__list">
+              @for (t of blockedTasks(); track t.id) {
+                <ion-menu-toggle autoHide="false">
+                  <ion-item [routerLink]="['/task', t.id]" routerDirection="forward" button lines="none" class="sidebar-task-item sidebar-task-item--blocked">
+                    <ion-label><p class="sidebar-task-title">{{ t.title }}</p></ion-label>
+                  </ion-item>
+                </ion-menu-toggle>
+              }
+              @if (!blockedTasks().length) {
+                <p class="menu-section__empty">Nothing blocked</p>
+              }
+            </ion-list>
+          }
+        </div>
+
+        <!-- In Flight -->
+        <div class="menu-section menu-accordion">
+          <button class="menu-accordion__header" (click)="inFlightOpen = !inFlightOpen">
+            <ion-icon name="flash-outline"></ion-icon>
+            <span class="menu-accordion__title">In Flight</span>
+            @if (inFlightTasks().length) {
+              <ion-badge color="warning" class="menu-section__badge">{{ inFlightTasks().length }}</ion-badge>
+            }
+            <ion-icon [name]="inFlightOpen ? 'chevron-down-outline' : 'chevron-forward-outline'" class="menu-accordion__caret"></ion-icon>
+          </button>
+          @if (inFlightOpen) {
+            <ion-list class="menu-section__list">
+              @for (t of inFlightTasks(); track t.id) {
+                <ion-menu-toggle autoHide="false">
+                  <ion-item [routerLink]="['/task', t.id]" routerDirection="forward" button lines="none" class="sidebar-task-item sidebar-task-item--inflight">
+                    <ion-label><p class="sidebar-task-title">{{ t.title }}</p></ion-label>
+                  </ion-item>
+                </ion-menu-toggle>
+              }
+              @if (!inFlightTasks().length) {
+                <p class="menu-section__empty">No agents running</p>
+              }
+            </ion-list>
+          }
+        </div>
+
+        <!-- Recently Done -->
+        <div class="menu-section menu-accordion">
+          <button class="menu-accordion__header" (click)="recentlyDoneOpen = !recentlyDoneOpen">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+            <span class="menu-accordion__title">Recently Done</span>
+            @if (recentlyDoneTasks().length) {
+              <ion-badge color="success" class="menu-section__badge">{{ recentlyDoneTasks().length }}</ion-badge>
+            }
+            <ion-icon [name]="recentlyDoneOpen ? 'chevron-down-outline' : 'chevron-forward-outline'" class="menu-accordion__caret"></ion-icon>
+          </button>
+          @if (recentlyDoneOpen) {
+            <ion-list class="menu-section__list">
+              @for (t of recentlyDoneTasks(); track t.id) {
+                <ion-menu-toggle autoHide="false">
+                  <ion-item [routerLink]="['/task', t.id]" routerDirection="forward" button lines="none" class="sidebar-task-item sidebar-task-item--done">
+                    <ion-label><p class="sidebar-task-title">{{ t.title }}</p></ion-label>
+                  </ion-item>
+                </ion-menu-toggle>
+              }
+              @if (!recentlyDoneTasks().length) {
+                <p class="menu-section__empty">No completed tasks</p>
+              }
+            </ion-list>
+          }
+        </div>
+
+        <!-- Inbox Accounts accordion -->
+        <div class="menu-section menu-accordion">
+          <button class="menu-accordion__header" (click)="inboxOpen = !inboxOpen">
+            <ion-icon name="mail-outline"></ion-icon>
+            <span class="menu-accordion__title">Inbox</span>
+            @if (inboxState.pendingCount() > 0) {
+              <ion-badge color="warning" class="menu-section__badge">{{ inboxState.pendingCount() }}</ion-badge>
+            }
+            <ion-icon [name]="inboxOpen ? 'chevron-down-outline' : 'chevron-forward-outline'" class="menu-accordion__caret"></ion-icon>
+          </button>
+          @if (inboxOpen) {
+            <ion-list class="menu-section__list">
+              @if (loadingAccounts() && !inboxState.accounts().length) {
+                <p class="menu-section__empty">Loading…</p>
+              }
+              @for (acct of inboxState.accounts(); track acct.account) {
+                <ion-menu-toggle autoHide="false">
+                  <ion-item
+                    button
+                    lines="none"
+                    class="sidebar-task-item inbox-acct-item"
+                    [class.inbox-acct-item--active]="inboxState.selectedAccount() === acct.account"
+                    (click)="selectInboxAccount(acct.account)"
+                  >
+                    <ion-icon
+                      slot="start"
+                      [name]="acct.source === 'gmail' ? 'mail-outline' : 'mail-open-outline'"
+                      [color]="acct.source === 'gmail' ? 'danger' : 'primary'"
+                    ></ion-icon>
+                    <ion-label>
+                      <p class="sidebar-task-title">{{ friendlyAccountLabel(acct.account, acct.source) }}</p>
+                    </ion-label>
+                    @if (acct.unread_count > 0) {
+                      <ion-badge slot="end" color="danger">{{ acct.unread_count }}</ion-badge>
+                    }
+                  </ion-item>
+                </ion-menu-toggle>
+              }
+              @if (!loadingAccounts() && !inboxState.accounts().length) {
+                <p class="menu-section__empty">Open Inbox to load accounts</p>
+              }
+            </ion-list>
+          }
+        </div>
+
         <!-- 2. Agent Tasks + Chat -->
         <ion-list class="nav-list">
           @for (item of appPages; track item.url) {

@@ -34,6 +34,10 @@ export const routes: Routes = [
     loadComponent: () => import('./youtube-agent/youtube-agent.page').then((m) => m.YoutubeAgentPage),
   },
   {
+    path: 'inbox',
+    loadComponent: () => import('./inbox/inbox.page').then((m) => m.InboxPage),
+  },
+  {
     path: '',
     redirectTo: 'dashboard',
     pathMatch: 'full',

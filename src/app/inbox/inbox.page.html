@@ -1,0 +1,169 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>
+      @if (activeAccount()) {
+        {{ inboxState.accountDisplayName(activeAccount()!.account, activeAccount()!.source) }}
+        @if (activeAccount()!.unread_count > 0) {
+          <ion-badge color="danger" class="title-badge">{{ activeAccount()!.unread_count }}</ion-badge>
+        }
+      } @else {
+        Inbox
+      }
+    </ion-title>
+    <ion-buttons slot="end">
+      @if (inboxState.pendingCount() > 0) {
+        <ion-badge color="warning" class="header-pending-badge">{{ inboxState.pendingCount() }} pending</ion-badge>
+      }
+      <ion-button (click)="refresh()" [disabled]="loading()" title="Refresh">
+        <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+
+  <!-- Loading state -->
+  @if (loading()) {
+    <div class="loading-wrap">
+      <ion-spinner name="dots"></ion-spinner>
+      <p>Fetching emails…</p>
+    </div>
+  }
+
+  <!-- Error banner -->
+  @if (errors().length > 0 && !loading()) {
+    <div class="error-banner">
+      <ion-icon name="warning-outline"></ion-icon>
+      <div>
+        @for (err of errors(); track err) {
+          <p>{{ err }}</p>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Metadata bar -->
+  @if (fetchedAt() && !loading()) {
+    <p class="meta-bar">
+      {{ isCached() ? 'Cached' : 'Live' }} · {{ fetchedAt() | date:'shortTime' }}
+      · {{ inboxState.accounts().length }} account{{ inboxState.accounts().length === 1 ? '' : 's' }}
+    </p>
+  }
+
+  <!-- No data yet -->
+  @if (!loading() && !activeAccount() && !errors().length) {
+    <div class="empty-state">
+      <ion-icon name="mail-outline"></ion-icon>
+      <h3>No inbox loaded</h3>
+      <p>Select an account from the sidebar or tap refresh.</p>
+    </div>
+  }
+
+  <!-- Active account messages -->
+  @if (activeAccount(); as acct) {
+    <!-- Account header bar -->
+    <div class="acct-header-bar">
+      <ion-icon
+        [name]="acct.source === 'gmail' ? 'mail-outline' : 'mail-open-outline'"
+        [color]="acct.source === 'gmail' ? 'danger' : 'primary'"
+      ></ion-icon>
+      <span class="acct-email">{{ acct.account }}</span>
+      <ion-badge [color]="acct.unread_count > 0 ? 'danger' : 'medium'" class="acct-unread-badge">
+        {{ acct.unread_count }} unread
+      </ion-badge>
+    </div>
+
+    @if (!acct.messages.length) {
+      <p class="empty-inbox">All caught up ✓</p>
+    }
+
+    <ion-list lines="full" class="message-list">
+      @for (msg of acct.messages; track msg.id) {
+        @let effTag = effectiveTag(msg.id, msg.enzo_tag);
+        @let queued = isLocallyQueued(msg.id);
+        @let editing = editingMsgId() === msg.id;
+
+        <ion-item [class.msg-unread]="msg.is_unread" lines="full" class="msg-item">
+          <ion-icon
+            slot="start"
+            [name]="msg.is_starred ? 'star' : (msg.is_unread ? 'ellipse' : 'ellipse-outline')"
+            [color]="msg.is_starred ? 'warning' : (msg.is_unread ? 'primary' : 'medium')"
+            class="msg-status-icon"
+          ></ion-icon>
+
+          <ion-label class="msg-label">
+            <h3 [class.font-bold]="msg.is_unread">{{ msg.subject }}</h3>
+            <p class="msg-from">{{ msg.from }}</p>
+            @if (msg.snippet) {
+              <p class="msg-snippet">{{ msg.snippet }}</p>
+            }
+
+            <!-- Tag suggestion / edit row -->
+            <div class="tag-row">
+              @if (editing) {
+                <!-- Edit mode -->
+                <input
+                  class="tag-input"
+                  type="text"
+                  placeholder="tag name…"
+                  [value]="editTagValue()"
+                  (input)="editTagValue.set($any($event.target).value)"
+                  (keyup.enter)="confirmEdit(msg)"
+                  (keyup.escape)="cancelEdit()"
+                />
+                <button class="tag-btn tag-btn--confirm" (click)="confirmEdit(msg)" title="Apply">
+                  <ion-icon name="checkmark-outline"></ion-icon>
+                </button>
+                <button class="tag-btn tag-btn--cancel" (click)="cancelEdit()" title="Cancel">
+                  <ion-icon name="close-outline"></ion-icon>
+                </button>
+              } @else {
+                <!-- View mode -->
+                @if (effTag) {
+                  <ion-chip
+                    class="enzo-chip"
+                    [class.enzo-chip--queued]="queued"
+                    [color]="enzoTagColor(effTag)"
+                    size="small"
+                  >
+                    {{ enzoTagLabel(effTag) }}
+                    @if (queued) { <span class="queued-dot"> ●</span> }
+                  </ion-chip>
+                } @else {
+                  <span class="no-tag-hint">no tag</span>
+                }
+
+                <!-- ↺ Quick-apply server suggestion -->
+                @if (msg.enzo_tag && !queued) {
+                  <button class="tag-btn" (click)="applyServerSuggestion(msg)" title="Apply suggestion">
+                    <ion-icon name="checkmark-outline"></ion-icon>
+                  </button>
+                }
+
+                <!-- ↺ Re-classify -->
+                <button class="tag-btn" (click)="reclassify(msg)" title="Re-classify">
+                  <ion-icon name="refresh-outline"></ion-icon>
+                </button>
+
+                <!-- ✎ Edit -->
+                <button class="tag-btn" (click)="startEdit(msg)" title="Edit tag">
+                  <ion-icon name="pencil-outline"></ion-icon>
+                </button>
+              }
+            </div>
+          </ion-label>
+
+          <ion-note slot="end" class="msg-date">
+            {{ parseDate(msg.date) | date:'MMM d' }}
+          </ion-note>
+        </ion-item>
+      }
+    </ion-list>
+  }
+
+</ion-content>
+

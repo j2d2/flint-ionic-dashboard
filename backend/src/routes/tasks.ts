@@ -8,18 +8,42 @@ import { AgentTaskPatch, NewTaskPayload } from '../types/AgentTask';
 
 export const tasksRouter = Router();
 
-// GET /api/tasks — list tasks with pagination (?status=, ?limit=, ?offset=, ?channel=)
+// GET /api/tasks — list tasks with pagination
+// Query params: ?status= (single or comma-separated), ?review_due=, ?order_by=, ?order_dir=, ?channel=, ?limit=, ?offset=
 tasksRouter.get('/', async (req: Request, res: Response) => {
   try {
-    const status = typeof req.query.status === 'string' ? req.query.status : undefined;
-    const channel = typeof req.query.channel === 'string' ? req.query.channel : undefined;
-    const limit = req.query.limit ? Math.min(Number(req.query.limit), 200) : 50;
-    const offset = req.query.offset ? Math.max(Number(req.query.offset), 0) : 0;
-    const result = await flint.listTasksPaged(status, limit, offset);
-    const tasks = channel
-      ? result.tasks.filter(t => t.tags?.includes(`channel:${channel}`))
-      : result.tasks;
-    res.json({ tasks, total: channel ? tasks.length : result.total, offset, limit });
+    const statusRaw  = typeof req.query.status    === 'string' ? req.query.status    : undefined;
+    const channel    = typeof req.query.channel   === 'string' ? req.query.channel   : undefined;
+    const reviewDue  = req.query.review_due === '1' ? 1 : undefined;
+    const orderBy    = ['updated_at', 'created_at', 'priority'].includes(req.query.order_by as string)
+                         ? (req.query.order_by as string) : undefined;
+    const orderDir   = req.query.order_dir === 'asc' ? 'asc' : 'desc';
+    const limit      = req.query.limit  ? Math.min(Number(req.query.limit),  200) : 50;
+    const offset     = req.query.offset ? Math.max(Number(req.query.offset), 0)   : 0;
+
+    // Comma-separated ?status=blocked,failed → first status goes to MCP, rest filtered here
+    const statuses   = statusRaw ? statusRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
+    const mcpStatus  = statuses[0];           // MCP only supports one at a time
+    const extraStatuses = statuses.slice(1);  // additional statuses filtered post-fetch
+
+    // Fetch more when we'll post-filter, to avoid an under-filled page
+    const fetchLimit = (reviewDue !== undefined || extraStatuses.length > 0) ? 200 : limit;
+    const result = await flint.listTasksPaged(mcpStatus, fetchLimit, offset);
+
+    let tasks = result.tasks;
+    if (extraStatuses.length) tasks = tasks.filter(t => statuses.includes(t.status));
+    if (reviewDue !== undefined) tasks = tasks.filter(t => t.review_due === reviewDue);
+    if (channel)  tasks = tasks.filter(t => t.tags?.includes(`channel:${channel}`));
+    if (orderBy)  tasks.sort((a, b) => {
+      const av = orderBy === 'priority' ? (a.priority ?? 0) : (new Date(a[orderBy as 'updated_at' | 'created_at'] ?? 0).getTime());
+      const bv = orderBy === 'priority' ? (b.priority ?? 0) : (new Date(b[orderBy as 'updated_at' | 'created_at'] ?? 0).getTime());
+      return orderDir === 'asc' ? av - bv : bv - av;
+    });
+
+    const total = tasks.length;
+    // Re-apply limit/offset after post-filters (only if we over-fetched)
+    const sliced = (fetchLimit > limit) ? tasks.slice(0, limit) : tasks;
+    res.json({ tasks: sliced, total, offset, limit });
   } catch (err) {
     res.status(500).json({ error: (err as Error).message });
   }

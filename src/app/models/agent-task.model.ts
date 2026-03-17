@@ -55,6 +55,15 @@ export interface AgentTaskPatch {
   vault_note?: string;
 }
 
+export interface GetTasksFilter {
+  /** Single status or comma-separated list, e.g. 'blocked,failed' */
+  status?: string;
+  /** 1 = only tasks flagged for human review */
+  review_due?: number;
+  order_by?: 'updated_at' | 'created_at' | 'priority';
+  order_dir?: 'asc' | 'desc';
+}
+
 export interface NewTaskPayload {
   title: string;
   description?: string;

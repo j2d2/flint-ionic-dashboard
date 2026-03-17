@@ -161,6 +161,69 @@ ion-menu ion-footer ion-toolbar {
   }
 }
 
+// ─── Collapsed accordion categories (For Review, Blocked, In Flight, Done) ───
+
+.menu-accordion {
+  border-bottom: 1px solid rgba(var(--ion-color-medium-rgb), 0.09);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    width: 100%;
+    padding: 9px 14px 9px 16px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--ion-color-medium);
+    font-size: 0.72rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    font-weight: 600;
+    text-align: left;
+    outline: none;
+
+    ion-icon:first-child { font-size: 0.85rem; flex-shrink: 0; }
+
+    &:hover { color: var(--ion-color-primary); }
+    &:focus-visible { box-shadow: 0 0 0 2px var(--ion-color-primary); }
+  }
+
+  &__title { flex: 1; }
+
+  &__caret {
+    font-size: 0.85rem;
+    flex-shrink: 0;
+    pointer-events: none;
+  }
+}
+
+.sidebar-task-item {
+  --padding-start: 24px;
+  --min-height: 36px;
+
+  .sidebar-task-title {
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
+  }
+
+  &--review .sidebar-task-title  { color: var(--ion-color-tertiary); }
+  &--blocked .sidebar-task-title { color: var(--ion-color-danger); }
+  &--inflight .sidebar-task-title { color: var(--ion-color-warning); }
+  &--done .sidebar-task-title    { color: var(--ion-color-success); }
+}
+
+.menu-section__empty {
+  font-size: 11px;
+  color: var(--ion-color-medium);
+  padding: 4px 24px 10px;
+  margin: 0;
+  opacity: 0.6;
+}
+
 .haiku-item {
   --padding-start: 16px;
   --min-height: 44px;
@@ -171,5 +234,18 @@ ion-menu ion-footer ion-toolbar {
   font-size: 10px;
   padding: 2px 6px;
   border-radius: 6px;
+}
+
+.inbox-acct-item {
+  --min-height: 38px;
+
+  &.inbox-acct-item--active {
+    --background: var(--ion-color-primary-tint);
+
+    p {
+      font-weight: 600;
+      color: var(--ion-color-primary-shade);
+    }
+  }
 }
 

@@ -106,6 +106,26 @@
         </ion-card-content>
       </ion-card>
 
+      <!-- Vault doc + Chat actions card -->
+      <ion-card class="vault-card">
+        <ion-card-content class="vault-card-content">
+          <div class="vault-info">
+            <ion-icon name="library-outline" color="primary"></ion-icon>
+            @if (res.vault_path) {
+              <span class="vault-path">{{ res.vault_path }}</span>
+            } @else {
+              <span class="vault-path vault-path--saving">Saving to vault…</span>
+            }
+          </div>
+          <div class="vault-actions">
+            <ion-button fill="outline" size="small" (click)="openInChat()">
+              <ion-icon slot="start" name="chatbubbles-outline"></ion-icon>
+              Continue in Chat
+            </ion-button>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
       <!-- Haiku card -->
       <ion-card class="haiku-card">
         <ion-card-header>

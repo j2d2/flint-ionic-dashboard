@@ -5,6 +5,7 @@ import { Observable, map } from 'rxjs';
 import {
   AgentTask,
   AgentTaskPatch,
+  GetTasksFilter,
   HaikuEntry,
   NewTaskPayload,
   PlanExecuteResult,
@@ -15,10 +16,14 @@ import {
 export class TaskService {
   private readonly http = inject(HttpClient);
 
-  getTasks(offset = 0, limit = 50): Observable<{ tasks: AgentTask[]; total: number }> {
-    const params = new HttpParams()
+  getTasks(offset = 0, limit = 50, filter?: GetTasksFilter): Observable<{ tasks: AgentTask[]; total: number }> {
+    let params = new HttpParams()
       .set('offset', String(offset))
       .set('limit', String(limit));
+    if (filter?.status)    params = params.set('status', filter.status);
+    if (filter?.review_due !== undefined) params = params.set('review_due', String(filter.review_due));
+    if (filter?.order_by)  params = params.set('order_by', filter.order_by);
+    if (filter?.order_dir) params = params.set('order_dir', filter.order_dir);
     return this.http.get<{ tasks: AgentTask[]; total: number }>('/api/tasks', { params });
   }
 

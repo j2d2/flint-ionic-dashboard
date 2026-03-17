@@ -112,13 +112,17 @@
 
 /* Haiku */
 .haiku-card {
-  background: linear-gradient(135deg, var(--ion-color-primary-tint), var(--ion-color-secondary-tint));
+  background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-secondary));
+  color: #fff;
+
+  ion-card-header, ion-card-content { color: #fff; }
 }
 
 .haiku-title {
   display: flex;
   align-items: center;
   gap: 8px;
+  color: rgba(255, 255, 255, 0.85);
   ion-icon { font-size: 1rem; }
 }
 
@@ -133,6 +137,8 @@
   letter-spacing: 0.02em;
   line-height: 1.8;
   margin: 0;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 /* Takeaways */
@@ -218,6 +224,47 @@
 
 /* References */
 .references-card {}
+
+/* Vault / chat actions card */
+.vault-card {
+  border-left: 3px solid var(--ion-color-primary);
+
+  .vault-card-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 16px;
+  }
+
+  .vault-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1 1 0;
+    min-width: 0;
+
+    ion-icon { font-size: 1.1rem; flex-shrink: 0; }
+  }
+
+  .vault-path {
+    font-size: 0.78rem;
+    color: var(--ion-color-medium);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    &.vault-path--saving {
+      font-style: italic;
+      opacity: 0.7;
+    }
+  }
+
+  .vault-actions {
+    flex-shrink: 0;
+  }
+}
 
 .ref-group {
   margin-bottom: 16px;

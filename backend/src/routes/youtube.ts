@@ -83,22 +83,89 @@ youtubeRouter.post('/analyze', async (req: Request, res: Response) => {
       .replace(/\n\n---\n⚡ Flint local[^\n]*/s, '')
       .trim();
 
-    // 3. Register the haiku (non-fatal if it fails)
+    // 3. Register haiku + write vault doc in parallel (both non-fatal)
     let haikuId: string | undefined;
-    try {
-      const today = new Date().toISOString().split('T')[0];
-      const reg = await flint.registerHaiku(
-        haikuText,
-        `YouTube/${videoId}`,
-        today,
-      );
-      haikuId = reg.haiku_id;
-    } catch (err) {
-      console.warn(
-        '[youtube/analyze] haiku registration failed:',
-        (err as Error).message,
-      );
-    }
+    let vaultPath: string | undefined;
+
+    const today = new Date().toISOString().split('T')[0];
+
+    // Build vault markdown doc
+    const slug = (brief.title ?? videoId)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 60);
+    const vaultFilename = `${today}-${slug}.md`;
+
+    const taskLines = proposedTasks
+      .map((t, i) => `### ${i + 1}. ${t.title}\n**Type:** ${t.type}  **Priority:** P${t.priority}  **Effort:** ${t.estimated_effort}\n\n${t.description}${t.source_quote ? `\n\n> "${t.source_quote}"` : ''}`)
+      .join('\n\n');
+
+    const refSection = (() => {
+      const r = brief.references;
+      const lines: string[] = [];
+      if (r?.urls?.length) lines.push(`**URLs:**\n${r.urls.map(u => `- ${u}`).join('\n')}`);
+      if (r?.books?.length) lines.push(`**Books:**\n${r.books.map(b => `- ${b}`).join('\n')}`);
+      if (r?.people?.length) lines.push(`**People:** ${r.people.join(', ')}`);
+      if (r?.tools_and_products?.length) lines.push(`**Tools/Products:** ${r.tools_and_products.join(', ')}`);
+      if (r?.concepts?.length) lines.push(`**Concepts:** ${r.concepts.join(', ')}`);
+      return lines.join('\n\n');
+    })();
+
+    const vaultContent = [
+      `---`,
+      `title: "${(brief.title ?? videoId).replace(/"/g, "'")}"`,
+      `channel: "${brief.channel ?? ''}"`,
+      `video_id: ${videoId}`,
+      `date: ${today}`,
+      `tags: [youtube, research]`,
+      `source: https://www.youtube.com/watch?v=${videoId}`,
+      `---`,
+      ``,
+      `# ${brief.title ?? videoId}`,
+      ``,
+      `**Channel:** ${brief.channel ?? 'Unknown'}  |  **Published:** ${brief.published ?? '—'}  |  **Duration:** ${brief.duration_seconds ? Math.round(brief.duration_seconds / 60) + ' min' : '—'}`,
+      ``,
+      `## TL;DR`,
+      ``,
+      brief.tldr ?? '',
+      ``,
+      `## Haiku`,
+      ``,
+      `*${haikuText.replace(/\n/g, '*  \n*')}*`,
+      ``,
+      `## Key Takeaways`,
+      ``,
+      ...(brief.key_takeaways ?? []).map(t => `- ${t}`),
+      ``,
+      ...(brief.chapters?.length ? [
+        `## Chapter Summaries`,
+        ``,
+        ...brief.chapters.map(c => `**[${c.timestamp}] ${c.title}** — ${c.summary}`),
+        ``,
+      ] : []),
+      ...(taskLines ? [`## Proposed Tasks`, ``, taskLines, ``] : []),
+      ...(refSection ? [`## References`, ``, refSection, ``] : []),
+      ...(brief.credibility_signals ? [
+        `## Credibility Signals`,
+        ``,
+        `- Has citations: ${brief.credibility_signals.has_citations ? 'Yes' : 'No'}`,
+        ...(brief.credibility_signals.expert_claims?.length ? [`- Expert claims: ${brief.credibility_signals.expert_claims.join('; ')}`] : []),
+        ...(brief.credibility_signals.red_flags?.length ? [`- ⚠️ Red flags: ${brief.credibility_signals.red_flags.join('; ')}`] : []),
+        ``,
+      ] : []),
+    ].join('\n');
+
+    await Promise.all([
+      // Register haiku
+      flint.registerHaiku(haikuText, `YouTube/${videoId}`, today)
+        .then(reg => { haikuId = reg.haiku_id; })
+        .catch(err => console.warn('[youtube/analyze] haiku registration failed:', (err as Error).message)),
+      // Write vault doc
+      flint.addToVault(vaultFilename, vaultContent, 'Research/YouTube')
+        .then(r => { vaultPath = r.path; })
+        .catch(err => console.warn('[youtube/analyze] vault write failed:', (err as Error).message)),
+    ]);
 
     res.json({
       video_id: videoId,
@@ -106,6 +173,7 @@ youtubeRouter.post('/analyze', async (req: Request, res: Response) => {
       haiku: haikuText,
       haiku_id: haikuId,
       proposed_tasks: proposedTasks,
+      vault_path: vaultPath,
     });
   } catch (err) {
     const message = (err as Error).message ?? String(err);

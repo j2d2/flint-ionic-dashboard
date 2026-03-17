@@ -54,6 +54,7 @@ export interface YoutubeAnalysisResult {
   haiku: string;
   haiku_id?: string;
   proposed_tasks: ProposedTask[];
+  vault_path?: string;
 }
 
 export interface QueueTasksResult {
