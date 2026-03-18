@@ -56,6 +56,7 @@ import { EmailService } from './services/email.service';
 import { InboxStateService } from './services/inbox-state.service';
 import { SocketService } from './services/socket.service';
 import { TaskService } from './services/task.service';
+import { SystemStatsBarComponent } from './shared/system-stats-bar/system-stats-bar.component';
 
 @Component({
   selector: 'app-root',
@@ -80,6 +81,7 @@ import { TaskService } from './services/task.service';
     IonRouterOutlet,
     IonFooter,
     IonBadge,
+    SystemStatsBarComponent,
   ],
 })
 export class AppComponent implements OnInit {

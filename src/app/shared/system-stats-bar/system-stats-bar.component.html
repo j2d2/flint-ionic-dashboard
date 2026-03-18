@@ -1,0 +1,54 @@
+<div class="stats-bar">
+
+  <!-- ── Brand ───────────────────────────────────────── -->
+  <span class="stats-bar__brand">Flint Hive</span>
+
+  <!-- Spacer pushes all stats to the right -->
+  <div class="stats-bar__spacer"></div>
+
+  <!-- ── RAM ─────────────────────────────────────────── -->
+  <div class="stats-bar__group">
+    <span class="stats-bar__label">RAM</span>
+    <span class="stats-bar__value">
+      {{ stats.latest()?.ram_used_gb | number:'1.1-1' }}&thinsp;/&thinsp;{{ stats.latest()?.ram_total_gb | number:'1.0-0' }}&thinsp;GB
+    </span>
+    <div class="stats-bar__track">
+      <div class="stats-bar__fill" [style.width.%]="ramPct() * 100"></div>
+    </div>
+    <span class="stats-bar__peak" title="Session RAM peak">↑{{ stats.peak_ram_gb() | number:'1.1-1' }}</span>
+  </div>
+
+  <div class="stats-bar__sep"></div>
+
+  <!-- ── Network ──────────────────────────────────────── -->
+  <div class="stats-bar__group">
+    <span class="stats-bar__label">NET</span>
+    <span class="stats-bar__value">
+      ↓&thinsp;{{ stats.session_rx_mb() | number:'1.0-1' }}&thinsp;MB
+      &nbsp;
+      ↑&thinsp;{{ stats.session_tx_mb() | number:'1.0-1' }}&thinsp;MB
+    </span>
+  </div>
+
+  <div class="stats-bar__sep"></div>
+
+  <!-- ── Uptime ────────────────────────────────────────── -->
+  <div class="stats-bar__group">
+    <span class="stats-bar__label">UP</span>
+    <span class="stats-bar__value stats-bar__mono">{{ uptime() }}</span>
+  </div>
+
+  <!-- ── 5-snapshot history ──────────────────────────── -->
+  @if (lastFive().length > 0) {
+    <div class="stats-bar__group stats-bar__history">
+      @for (snap of lastFive(); track snap.timestamp_ms) {
+        <span
+          class="stats-bar__snap"
+          [title]="(snap.ram_used_gb | number:'1.1-1') + ' GB · ' + (snap.timestamp_ms | date:'HH:mm')">
+          {{ snap.ram_used_gb | number:'1.0-0' }}G
+        </span>
+      }
+    </div>
+  }
+
+</div>

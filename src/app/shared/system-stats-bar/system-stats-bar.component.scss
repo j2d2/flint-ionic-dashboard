@@ -1,0 +1,127 @@
+:host {
+  display: block;
+  width: 100%;
+  background: #111318;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  flex-shrink: 0;
+  // Sit above ion-router-outlet's z-index stack
+  position: relative;
+  z-index: 100;
+}
+
+.stats-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 14px;
+  height: 36px;
+  overflow: hidden;
+  white-space: nowrap;
+
+  // ── Separator
+  &__sep {
+    width: 1px;
+    height: 16px;
+    background: rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
+  }
+
+  // ── Brand name
+  &__brand {
+    font-size: 11px;
+    font-weight: 700;
+    color: #d4902a;
+    letter-spacing: 0.3px;
+    flex-shrink: 0;
+  }
+
+  // ── Spacer: pushes stats to the right
+  &__spacer {
+    flex: 1;
+  }
+
+  // ── Label (RAM / NET / UP)
+  &__label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.3);
+    flex-shrink: 0;
+  }
+
+  // ── Group wrapper
+  &__group {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+  }
+
+  // ── Value text
+  &__value {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.65);
+    font-family: var(--ion-font-family, system-ui);
+  }
+
+  &__mono {
+    font-family: 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', monospace;
+    letter-spacing: 0.5px;
+  }
+
+  // ── Mini RAM progress bar
+  &__track {
+    width: 44px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  &__fill {
+    height: 100%;
+    border-radius: 2px;
+    background: var(--ion-color-primary, #428cff);
+    transition: width 0.6s ease;
+
+    // Turn amber/red as fill increases
+    @media (prefers-color-scheme: dark) {
+      & {
+        background: linear-gradient(
+          to right,
+          var(--ion-color-primary, #428cff),
+          var(--ion-color-primary, #428cff)
+        );
+      }
+    }
+  }
+
+  // ── Session peak RAM
+  &__peak {
+    font-size: 10px;
+    color: var(--ion-color-warning-shade, #e6c013);
+    flex-shrink: 0;
+  }
+
+  // ── Snapshot history strip
+  &__history {
+    gap: 4px;
+    opacity: 0.55;
+  }
+
+  &__snap {
+    font-size: 9px;
+    padding: 1px 5px;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    color: rgba(255, 255, 255, 0.55);
+    cursor: default;
+    transition: opacity 0.2s;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+}
