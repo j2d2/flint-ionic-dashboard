@@ -8,15 +8,56 @@
 </ion-header>
 
 <ion-content class="ion-padding">
+  <!-- Vault Doc Link (optional) — enter first to auto-fill title -->
+  <ion-item>
+    <ion-label position="stacked">
+      Vault Doc
+      @if (vaultLinkChecking()) {
+        <span style="font-style:italic;opacity:.7;font-size:.8em;"> checking…</span>
+      }
+    </ion-label>
+    <ion-textarea
+      [(ngModel)]="vaultLink"
+      (ngModelChange)="onVaultLinkChange()"
+      placeholder="Inbox/MY-DOC.md (optional)"
+      auto-grow="true"
+      rows="1"
+    ></ion-textarea>
+  </ion-item>
+  @if (vaultPreview(); as preview) {
+    <div style="padding: 4px 16px 8px; font-size:.85em;">
+      @if (preview.found) {
+        <span style="color:var(--ion-color-success)">✓ {{ preview.title || vaultLink }}</span>
+      } @else {
+        <span style="color:var(--ion-color-danger)">✗ Doc not found in vault</span>
+      }
+    </div>
+  }
+
   <ion-item>
     <ion-label position="stacked">Title</ion-label>
     <ion-textarea
       [(ngModel)]="title"
+      (ngModelChange)="onTitleChange()"
       placeholder="What should this agent do?"
       auto-grow="true"
       rows="3"
     ></ion-textarea>
   </ion-item>
+  @if (duplicateTask(); as dup) {
+    @if (!duplicateConfirmed()) {
+      <div style="padding: 8px 16px; border-left: 3px solid var(--ion-color-warning); margin: 0 16px 8px; background: var(--ion-color-warning-tint, rgba(255,196,9,.1))">
+        <p style="margin: 0 0 8px; font-size:.85em">
+          ⚠ Similar task already exists: <strong>{{ dup.title }}</strong>
+          <span style="opacity:.7"> ({{ dup.status }})</span>
+        </p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <ion-button size="small" fill="outline" color="warning" (click)="confirmDuplicate()">Create Anyway</ion-button>
+          <ion-button size="small" fill="outline" color="medium" (click)="dismiss()">Abort</ion-button>
+        </div>
+      </div>
+    }
+  }
 
   <ion-item>
     <ion-label position="stacked">Description (optional)</ion-label>
@@ -32,22 +73,24 @@
   <ion-item>
     <ion-label>Channel</ion-label>
     <ion-select [(ngModel)]="channel" interface="popover" (ngModelChange)="onChannelChange()">
-      <ion-select-option *ngFor="let ch of channels" [value]="ch.id">
-        {{ ch.name }}
-      </ion-select-option>
+      @for (ch of channels; track ch.id) {
+        <ion-select-option [value]="ch.id">{{ ch.name }}</ion-select-option>
+      }
     </ion-select>
   </ion-item>
 
   <ion-item>
     <ion-label>Agent Type</ion-label>
     <ion-select [(ngModel)]="taskType" interface="popover">
-      <ion-select-option *ngFor="let type of taskTypes" [value]="type.value">
-        {{ type.label }}
-      </ion-select-option>
+      @for (type of taskTypes; track type.value) {
+        <ion-select-option [value]="type.value">{{ type.label }}</ion-select-option>
+      }
     </ion-select>
   </ion-item>
 
-  <ion-button expand="block" class="ion-margin-top" [disabled]="isSubmitting() || !title.trim()" (click)="submit()">
+  <ion-button expand="block" class="ion-margin-top"
+    [disabled]="isSubmitting() || !title.trim() || (!!duplicateTask() && !duplicateConfirmed())"
+    (click)="submit()">
     {{ submitLabel }}
   </ion-button>
 </ion-content>

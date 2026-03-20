@@ -188,6 +188,18 @@
           }
         </div>
 
+        <!-- 2. Agent Tasks + Chat -->
+        <ion-list class="nav-list">
+          @for (item of appPages; track item.url) {
+            <ion-menu-toggle autoHide="false">
+              <ion-item [routerLink]="item.url" routerDirection="root" lines="full">
+                <ion-icon slot="start" [name]="item.icon"></ion-icon>
+                <ion-label>{{ item.title }}</ion-label>
+              </ion-item>
+            </ion-menu-toggle>
+          }
+        </ion-list>
+
         <!-- Inbox Accounts accordion -->
         <div class="menu-section menu-accordion">
           <button class="menu-accordion__header" (click)="inboxOpen = !inboxOpen">
@@ -232,18 +244,6 @@
             </ion-list>
           }
         </div>
-
-        <!-- 2. Agent Tasks + Chat -->
-        <ion-list class="nav-list">
-          @for (item of appPages; track item.url) {
-            <ion-menu-toggle autoHide="false">
-              <ion-item [routerLink]="item.url" routerDirection="root" lines="full">
-                <ion-icon slot="start" [name]="item.icon"></ion-icon>
-                <ion-label>{{ item.title }}</ion-label>
-              </ion-item>
-            </ion-menu-toggle>
-          }
-        </ion-list>
 
         <!-- 4. Haiku Leaderboard -->
         <div class="menu-section menu-section--last">

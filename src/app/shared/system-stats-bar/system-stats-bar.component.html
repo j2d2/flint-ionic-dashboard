@@ -38,15 +38,16 @@
     <span class="stats-bar__value stats-bar__mono">{{ uptime() }}</span>
   </div>
 
-  <!-- ── 5-snapshot history ──────────────────────────── -->
-  @if (lastFive().length > 0) {
-    <div class="stats-bar__group stats-bar__history">
-      @for (snap of lastFive(); track snap.timestamp_ms) {
-        <span
-          class="stats-bar__snap"
-          [title]="(snap.ram_used_gb | number:'1.1-1') + ' GB · ' + (snap.timestamp_ms | date:'HH:mm')">
-          {{ snap.ram_used_gb | number:'1.0-0' }}G
-        </span>
+  <!-- ── Reading count + RAM range (shows activity, no repetition) ── -->
+  @if (readingCount() > 0) {
+    <div class="stats-bar__sep"></div>
+    <div class="stats-bar__group">
+      <span class="stats-bar__snap stats-bar__snap--count"
+            title="Readings this session">
+        ×{{ readingCount() }}
+      </span>
+      @if (ramRange()) {
+        <span class="stats-bar__snap" title="Session RAM range">{{ ramRange() }} GB</span>
       }
     </div>
   }

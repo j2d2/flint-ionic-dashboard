@@ -104,24 +104,21 @@
     flex-shrink: 0;
   }
 
-  // ── Snapshot history strip
-  &__history {
-    gap: 4px;
-    opacity: 0.55;
-  }
-
+  // ── Snap badge (RAM range / reading count)
   &__snap {
     font-size: 9px;
     padding: 1px 5px;
-    background: rgba(255, 255, 255, 0.07);
+    background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 3px;
-    color: rgba(255, 255, 255, 0.55);
+    color: rgba(255, 255, 255, 0.45);
     cursor: default;
-    transition: opacity 0.2s;
 
-    &:hover {
-      opacity: 1;
+    // Reading count badge: slightly warmer tint
+    &--count {
+      color: rgba(212, 144, 42, 0.6);
+      border-color: rgba(212, 144, 42, 0.2);
+      background: rgba(212, 144, 42, 0.06);
     }
   }
 }

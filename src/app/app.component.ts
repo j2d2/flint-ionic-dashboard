@@ -93,7 +93,7 @@ export class AppComponent implements OnInit {
 
   readonly channels: Channel[] = DEFAULT_CHANNELS;
   channelsOpen = true;
-  inboxOpen = true;
+  inboxOpen = false;
   readonly version = environment.version;
   readonly reviewTasks = signal<AgentTask[]>([]);
   readonly forReviewTasks = signal<AgentTask[]>([]);

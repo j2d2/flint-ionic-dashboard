@@ -59,6 +59,28 @@ tasksRouter.get('/stats', async (_req: Request, res: Response) => {
   }
 });
 
+// GET /api/tasks/search?title=&limit= — find active tasks by title substring (duplicate detection)
+// Must be defined before /:id so Express doesn't treat "search" as a task id.
+tasksRouter.get('/search', async (req: Request, res: Response) => {
+  try {
+    const q = typeof req.query.title === 'string' ? req.query.title.trim().toLowerCase() : '';
+    if (!q || q.length < 3) { res.json({ tasks: [] }); return; }
+
+    const limit = req.query.limit ? Math.min(Number(req.query.limit), 20) : 5;
+    const result = await flint.listTasksPaged(undefined, 200, 0);
+
+    const EXCLUDE = new Set(['done', 'failed', 'cancelled']);
+    const matches = result.tasks
+      .filter(t => !EXCLUDE.has(t.status) && t.title.toLowerCase().includes(q))
+      .slice(0, limit)
+      .map(t => ({ id: t.id, title: t.title, status: t.status }));
+
+    res.json({ tasks: matches });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
 // GET /api/tasks/:id — single task with children
 tasksRouter.get('/:id', async (req: Request, res: Response) => {
   try {

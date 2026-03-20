@@ -24,6 +24,7 @@ export interface AgentTask {
   model?: string;
   model_used?: string;
   vault_note?: string;
+  vault_link?: string;
   child_count?: number;
   done_children?: number;
   tags?: string;

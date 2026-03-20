@@ -35,6 +35,17 @@ export class SystemStatsBarComponent {
     return snap.ram_used_gb / snap.ram_total_gb;
   });
 
-  /** Last 5 snapshots for the inline history strip. */
-  protected readonly lastFive = computed(() => this.stats.snapshots().slice(0, 5));
+  /** Number of readings taken this session. */
+  protected readonly readingCount = computed(() => this.stats.snapshots().length);
+
+  /** RAM range across session: "min–max GB" (only shown when min !== max). */
+  protected readonly ramRange = computed(() => {
+    const snaps = this.stats.snapshots();
+    if (snaps.length < 2) return null;
+    const values = snaps.map(s => s.ram_used_gb);
+    const lo = Math.min(...values);
+    const hi = Math.max(...values);
+    if (hi - lo < 0.2) return null; // stable — don't clutter
+    return `${lo.toFixed(1)}–${hi.toFixed(1)}`;
+  });
 }
