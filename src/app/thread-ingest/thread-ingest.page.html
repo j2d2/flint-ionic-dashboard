@@ -1,0 +1,166 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Thread Ingest</ion-title>
+    @if (result()) {
+      <ion-buttons slot="end">
+        <ion-button size="small" fill="clear" (click)="reset()">
+          <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    }
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <!-- ── Input form ─────────────────────────────────────────────────────── -->
+  @if (!result()) {
+    <ion-card>
+      <ion-card-header>
+        <ion-card-subtitle>
+          <ion-icon name="chatbubbles-outline"></ion-icon>
+          Paste a ChatGPT / Claude conversation thread
+        </ion-card-subtitle>
+        <ion-card-title>Import Thread</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p class="hint">
+          Include speaker labels like <code>You:</code> / <code>ChatGPT:</code> for best results.
+          Use <code>## Branch name</code> headings to mark separate conversation branches.
+        </p>
+
+        <ion-textarea
+          [(ngModel)]="threadTitle"
+          label="Title"
+          labelPlacement="stacked"
+          placeholder="e.g. Planning session Mar 2026"
+          [autoGrow]="true"
+          rows="1"
+          class="title-input ion-margin-bottom"
+        ></ion-textarea>
+
+        <ion-textarea
+          [(ngModel)]="rawText"
+          label="Thread"
+          labelPlacement="stacked"
+          placeholder="You: What's the best way to... &#10;ChatGPT: Great question! Here's how..."
+          [autoGrow]="true"
+          rows="12"
+          class="thread-textarea"
+        ></ion-textarea>
+
+        <div class="action-row">
+          <ion-button
+            [disabled]="!canIngest"
+            (click)="ingest()"
+            size="small"
+          >
+            @if (isIngesting()) {
+              <ion-spinner slot="start" name="crescent"></ion-spinner>
+              Ingesting…
+            } @else {
+              <ion-icon slot="start" name="arrow-forward-outline"></ion-icon>
+              Ingest Thread
+            }
+          </ion-button>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  }
+
+  <!-- ── Error state ────────────────────────────────────────────────────── -->
+  @if (error()) {
+    <ion-card color="danger" class="ion-margin-top">
+      <ion-card-content>
+        <strong>Error:</strong> {{ error() }}
+        <div class="ion-margin-top">
+          <ion-button size="small" fill="outline" (click)="reset()">Try Again</ion-button>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  }
+
+  <!-- ── Result ─────────────────────────────────────────────────────────── -->
+  @if (result(); as res) {
+    <!-- Summary banner -->
+    <ion-card class="result-banner">
+      <ion-card-content>
+        <div class="result-summary">
+          <ion-icon name="checkmark-circle-outline" color="success" class="result-icon"></ion-icon>
+          <div class="result-text">
+            <strong>{{ res.title }}</strong>
+            <p>{{ res.summary }}</p>
+          </div>
+        </div>
+        <div class="result-chips">
+          <ion-chip color="primary" outline>
+            <ion-icon name="chatbubbles-outline"></ion-icon>
+            <ion-label>{{ res.turns.length }} turns</ion-label>
+          </ion-chip>
+          <ion-chip color="tertiary" outline>
+            <ion-icon name="document-text-outline"></ion-icon>
+            <ion-label>{{ res.vault_note }}</ion-label>
+          </ion-chip>
+        </div>
+        <!-- Create Agent Task button -->
+        @if (createdTaskId()) {
+          <ion-button
+            size="small" fill="outline" color="success"
+            (click)="openTask(createdTaskId()!)"
+          >
+            <ion-icon slot="start" name="flash-outline"></ion-icon>
+            View Task {{ createdTaskId() }}
+          </ion-button>
+        } @else {
+          <ion-button
+            size="small" fill="solid" color="warning"
+            [disabled]="isCreatingTask()"
+            (click)="createAgentTask()"
+          >
+            @if (isCreatingTask()) {
+              <ion-spinner slot="start" name="crescent"></ion-spinner>
+            } @else {
+              <ion-icon slot="start" name="flash-outline"></ion-icon>
+            }
+            Create Agent Task
+          </ion-button>
+        }
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Thread preview -->
+    <ion-card class="ion-margin-top">
+      <ion-card-header>
+        <ion-card-subtitle>Parsed Thread ({{ res.turns.length }} turns)</ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content class="ion-no-padding thread-preview">
+        @for (turn of res.turns; track turn.turn_index) {
+          @if (turn.branch_label) {
+            <div class="branch-label">
+              <ion-icon name="git-branch-outline"></ion-icon>
+              Branch: {{ turn.branch_label }}
+            </div>
+          }
+          <div class="turn" [class.turn--user]="turn.role === 'user'" [class.turn--assistant]="turn.role === 'assistant'">
+            <div class="turn-header">
+              <ion-icon [name]="turn.role === 'user' ? 'person-outline' : 'sparkles-outline'"></ion-icon>
+              <span class="turn-role">{{ turn.role === 'user' ? 'You' : 'Assistant' }}</span>
+            </div>
+            <p class="turn-content">{{ preview(turn.content) }}</p>
+          </div>
+        }
+      </ion-card-content>
+    </ion-card>
+
+    <div class="ion-padding-top" style="text-align:center">
+      <ion-button size="small" fill="outline" (click)="reset()">
+        <ion-icon slot="start" name="arrow-forward-outline"></ion-icon>
+        Ingest Another
+      </ion-button>
+    </div>
+  }
+
+</ion-content>

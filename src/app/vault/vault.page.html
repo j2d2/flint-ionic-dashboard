@@ -1,0 +1,243 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Vault</ion-title>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-segment [value]="activeSegment()" (ionChange)="onSegmentChange($event)">
+      <ion-segment-button value="browse">
+        <ion-icon name="folder-outline"></ion-icon>
+        <ion-label>Browse</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="search">
+        <ion-icon name="search-outline"></ion-icon>
+        <ion-label>Search</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  @if (error()) {
+    <div class="vault-error ion-padding">
+      <ion-icon name="chevron-forward-outline"></ion-icon>
+      {{ error() }}
+    </div>
+  }
+
+  <!-- ── Browse tab ──────────────────────────────────────────────────────── -->
+  @if (activeSegment() === 'browse') {
+    <div class="browse-layout">
+
+      <!-- Left: accordion nav -->
+      <div class="accordion-pane">
+
+        <!-- Flint Vault root accordion -->
+        <div class="accordion-folder" [class.is-open]="expandedFolder() === ROOT">
+          <ion-item
+            button
+            lines="none"
+            class="accordion-header"
+            [class.active-folder]="expandedFolder() === ROOT"
+            (click)="toggleFolder(ROOT)"
+          >
+            <ion-icon slot="start" name="book-outline"></ion-icon>
+            <ion-label>Flint Vault</ion-label>
+            <ion-icon slot="end" name="chevron-down-outline" class="chevron"></ion-icon>
+          </ion-item>
+          @if (expandedFolder() === ROOT) {
+            <div class="accordion-files">
+              @if (loadingFolder() === ROOT) {
+                <div class="folder-loading"><ion-spinner name="dots"></ion-spinner></div>
+              }
+              @for (entry of filesForFolder(ROOT); track entry.name) {
+                <ion-item
+                  button
+                  lines="none"
+                  class="accordion-file-item"
+                  [class.active-file]="activeFile() === filePathFor(ROOT, entry.name)"
+                  (click)="openFile(filePathFor(ROOT, entry.name))"
+                >
+                  <ion-icon slot="start" name="document-text-outline"></ion-icon>
+                  <ion-label><p class="file-name">{{ entry.name }}</p></ion-label>
+                </ion-item>
+              }
+              @if (!loadingFolder() && filesForFolder(ROOT).length === 0) {
+                <p class="empty-hint">No markdown files here</p>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Sort controls -->
+        <div class="folder-sort-bar">
+          <button class="sort-chip" [class.active]="folderSort() === 'recent'" (click)="setFolderSort('recent')">Recent</button>
+          <button class="sort-chip" [class.active]="folderSort() === 'alpha'" (click)="setFolderSort('alpha')">A–Z</button>
+        </div>
+
+        <!-- Dynamic folder accordions -->
+        @if (isLoadingFolders()) {
+          <div class="folder-loading"><ion-spinner name="dots"></ion-spinner></div>
+        }
+        @for (folder of sortedFolders(); track folder) {
+          <div class="accordion-folder" [class.is-open]="expandedFolder() === folder">
+            <ion-item
+              button
+              lines="none"
+              class="accordion-header"
+              [class.active-folder]="expandedFolder() === folder"
+              (click)="toggleFolder(folder)"
+            >
+              <ion-icon slot="start" name="folder-outline"></ion-icon>
+              <ion-label>{{ folder }}/</ion-label>
+              <ion-icon slot="end" name="chevron-down-outline" class="chevron"></ion-icon>
+            </ion-item>
+            @if (expandedFolder() === folder) {
+              <div class="accordion-files">
+                @if (loadingFolder() === folder) {
+                  <div class="folder-loading"><ion-spinner name="dots"></ion-spinner></div>
+                }
+                @for (entry of filesForFolder(folder); track entry.name) {
+                  <ion-item
+                    button
+                    lines="none"
+                    class="accordion-file-item"
+                    [class.active-file]="activeFile() === filePathFor(folder, entry.name)"
+                    (click)="openFile(filePathFor(folder, entry.name))"
+                  >
+                    <ion-icon slot="start" name="document-text-outline"></ion-icon>
+                    <ion-label><p class="file-name">{{ entry.name }}</p></ion-label>
+                  </ion-item>
+                }
+                @if (!loadingFolder() && filesForFolder(folder).length === 0) {
+                  <p class="empty-hint">No markdown files in {{ folder }}/</p>
+                }
+              </div>
+            }
+          </div>
+        }
+
+      </div>
+
+      <!-- Right: reading pane -->
+      <div class="reading-pane">
+        @if (isLoadingFile()) {
+          <div class="reading-loading">
+            <ion-spinner name="crescent"></ion-spinner>
+          </div>
+        }
+        @if (!isLoadingFile() && activeFile()) {
+          <div class="doc-path-bar">
+            <span class="doc-path-text">{{ activeFile() }}</span>
+            <button class="path-action-btn" title="Copy path" (click)="copyPath()">
+              <ion-icon name="copy-outline"></ion-icon>
+            </button>
+            @if (isUntitledThread()) {
+              <button
+                class="path-action-btn process-btn"
+                [disabled]="isProcessingThread()"
+                title="Process thread — generate title &amp; frontmatter"
+                (click)="processThread()"
+              >
+                @if (isProcessingThread()) {
+                  <ion-spinner name="dots" style="width:14px;height:14px"></ion-spinner>
+                } @else {
+                  <ion-icon name="sparkles-outline"></ion-icon>
+                }
+                <span>Process thread</span>
+              </button>
+            }
+            @if (processThreadResult()) {
+              <span class="process-result">
+                <ion-icon name="checkmark-circle-outline"></ion-icon>
+                {{ processThreadResult() }}
+              </span>
+            }
+          </div>
+        }
+        @if (!isLoadingFile() && renderedHtml()) {
+          <div class="markdown-body" [innerHTML]="renderedHtml()"></div>
+        }
+        @if (!isLoadingFile() && !activeFile()) {
+          <div class="reading-placeholder">
+            <ion-icon name="book-outline"></ion-icon>
+            <p>Select a file to read</p>
+          </div>
+        }
+      </div>
+
+    </div>
+  }
+
+  <!-- ── Search tab ──────────────────────────────────────────────────────── -->
+  @if (activeSegment() === 'search') {
+    <div class="search-tab">
+
+      <ion-searchbar
+        debounce="300"
+        placeholder="Search vault notes…"
+        (ionInput)="onSearchInput($event)"
+        animated="true"
+      ></ion-searchbar>
+
+      <div class="search-layout">
+
+        <!-- Left: results list -->
+        <div class="results-pane">
+          @if (isLoadingSearch()) {
+            <div class="search-loading">
+              <ion-spinner name="dots"></ion-spinner>
+            </div>
+          }
+
+          @if (!isLoadingSearch() && searchQuery() && searchResults().length === 0) {
+            <p class="empty-hint">No results for "{{ searchQuery() }}"</p>
+          }
+
+          @for (result of searchResults(); track result.path) {
+            <ion-card button (click)="openFile(result.path)">
+              <ion-card-header>
+                <ion-card-subtitle class="result-path">{{ result.path }}</ion-card-subtitle>
+                <ion-card-title class="result-title">{{ result.title }}</ion-card-title>
+              </ion-card-header>
+              <ion-card-content>
+                <p class="result-excerpt">{{ result.excerpt }}</p>
+              </ion-card-content>
+            </ion-card>
+          }
+        </div>
+
+        <!-- Right: reading pane -->
+        <div class="reading-pane">
+          @if (isLoadingFile()) {
+            <div class="reading-loading">
+              <ion-spinner name="crescent"></ion-spinner>
+            </div>
+          }
+          @if (!isLoadingFile() && activeFile()) {
+            <div class="doc-path-bar">
+              <span class="doc-path-text">{{ activeFile() }}</span>
+              <button class="path-action-btn" title="Copy path" (click)="copyPath()">
+                <ion-icon name="copy-outline"></ion-icon>
+              </button>
+            </div>
+          }
+          @if (!isLoadingFile() && renderedHtml()) {
+            <div class="markdown-body" [innerHTML]="renderedHtml()"></div>
+          }
+          @if (!isLoadingFile() && !activeFile()) {
+            <div class="reading-placeholder">
+              <ion-icon name="book-outline"></ion-icon>
+              <p>Select a result to read</p>
+            </div>
+          }
+        </div>
+
+      </div>
+    </div>
+  }
+
+</ion-content>

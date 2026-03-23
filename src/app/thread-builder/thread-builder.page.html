@@ -1,0 +1,260 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Build Thread</ion-title>
+    @if (threadId() && !finalizedPath()) {
+      <ion-buttons slot="end">
+        <ion-button size="small" fill="clear" (click)="reset()" title="Discard draft">
+          <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    }
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <!-- ── Loading draft ────────────────────────────────────────────────── -->
+  @if (isLoadingDraft()) {
+    <div class="loading-state">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Resuming draft…</p>
+    </div>
+  }
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       STEP 1 — Start a thread (shown before thread is started)
+  ════════════════════════════════════════════════════════════════════ -->
+  @if (!isLoadingDraft() && !threadId() && !finalizedPath()) {
+    <ion-card>
+      <ion-card-header>
+        <ion-card-subtitle>
+          <ion-icon name="build-outline"></ion-icon>
+          Reconstruct a conversation turn by turn
+        </ion-card-subtitle>
+        <ion-card-title>New Thread</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p class="hint">
+          Give your thread a title, then add turns from oldest to newest.
+          Progress is saved to vault after each turn.
+        </p>
+
+        <ion-input
+          [ngModel]="titleValue()"
+          (ngModelChange)="titleValue.set($event)"
+          label="Title"
+          labelPlacement="stacked"
+          placeholder="e.g. Planning session — March 2026"
+          class="ion-margin-bottom"
+        ></ion-input>
+
+        <div class="action-row">
+          <ion-button
+            [disabled]="!canStart()"
+            (click)="startThread()"
+            size="default"
+          >
+            @if (isStarting()) {
+              <ion-spinner slot="start" name="crescent"></ion-spinner>
+              Starting…
+            } @else {
+              <ion-icon slot="start" name="build-outline"></ion-icon>
+              Start Thread
+            }
+          </ion-button>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  }
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       STEP 2 — Thread active: show turns + add-turn form
+  ════════════════════════════════════════════════════════════════════ -->
+  @if (!isLoadingDraft() && threadId() && !finalizedPath()) {
+
+    <!-- Thread header badge -->
+    <div class="thread-header">
+      <ion-chip color="primary">
+        <ion-icon name="build-outline"></ion-icon>
+        <ion-label>{{ meta()?.title || 'Draft thread' }}</ion-label>
+      </ion-chip>
+      <ion-badge color="medium">{{ turns().length }} turn{{ turns().length === 1 ? '' : 's' }}</ion-badge>
+    </div>
+
+    <!-- Add-turn card (at top — always visible) -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Turn {{ turns().length + 1 }}</ion-card-title>
+        <ion-card-subtitle>Add the next exchange</ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+
+        <ion-textarea
+          [ngModel]="promptValue()"
+          (ngModelChange)="promptValue.set($event)"
+          label="Your Prompt"
+          labelPlacement="stacked"
+          placeholder="Paste the user message here…"
+          rows="5"
+          class="ion-margin-bottom"
+        ></ion-textarea>
+
+        <ion-textarea
+          [ngModel]="responseValue()"
+          (ngModelChange)="responseValue.set($event)"
+          label="Assistant Response"
+          labelPlacement="stacked"
+          placeholder="Paste the assistant reply here…"
+          rows="10"
+        ></ion-textarea>
+
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Built turns (newest first so latest is at top) -->
+    @if (turns().length > 0) {
+      <div class="turns-section">
+        <p class="turns-label">Built turns ({{ turns().length }} total)</p>
+
+        @for (turn of turns().slice().reverse(); track turn.turn_id) {
+          <ion-card class="turn-card">
+            <ion-card-header>
+              <ion-card-subtitle>
+                <ion-icon name="person-outline"></ion-icon>
+                Turn {{ turn.turn_number }}
+                <ion-badge color="light" class="ion-margin-start">{{ turn.branch }}</ion-badge>
+              </ion-card-subtitle>
+            </ion-card-header>
+            <ion-card-content>
+              <p class="turn-label">Prompt</p>
+              <p class="turn-text">{{ preview(turn.prompt) }}</p>
+              <p class="turn-label ion-margin-top">Response</p>
+              <p class="turn-text">{{ preview(turn.response) }}</p>
+              <div class="turn-actions">
+                <ion-button
+                  size="small"
+                  fill="outline"
+                  color="tertiary"
+                  [disabled]="isForkingTurnNumber() !== null"
+                  (click)="forkFromTurn(turn.turn_number)"
+                >
+                  @if (isForkingTurnNumber() === turn.turn_number) {
+                    <ion-spinner slot="start" name="crescent"></ion-spinner>
+                    Forking…
+                  } @else {
+                    <ion-icon slot="start" name="git-branch-outline"></ion-icon>
+                    Fork from here
+                  }
+                </ion-button>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        }
+      </div>
+    }
+  }
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       STEP 3 — Finalized
+  ════════════════════════════════════════════════════════════════════ -->
+  @if (finalizedPath()) {
+    <ion-card color="success" class="ion-margin-top finalized-card">
+      <ion-card-header>
+        <ion-card-title>Thread Finalized</ion-card-title>
+        <ion-card-subtitle>{{ turns().length }} turns saved to vault</ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <p class="vault-path">
+          <ion-icon name="document-text-outline"></ion-icon>
+          {{ finalizedPath() }}
+        </p>
+        <div class="action-row">
+          <ion-button size="small" fill="solid" (click)="openVault()">
+            <ion-icon slot="start" name="document-text-outline"></ion-icon>
+            Open Vault
+          </ion-button>
+          <ion-button size="small" fill="outline" (click)="reset()" class="ion-margin-start">
+            <ion-icon slot="start" name="add-outline"></ion-icon>
+            New Thread
+          </ion-button>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  }
+
+  <!-- ── Fork result ─────────────────────────────────────────────────────── -->
+  @if (forkedResult()) {
+    <ion-card color="tertiary" class="ion-margin-top">
+      <ion-card-header>
+        <ion-card-title>Branch Created</ion-card-title>
+        <ion-card-subtitle>Forked from turn {{ forkedResult()!.forked_from_turn }}</ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <p class="vault-path">
+          <ion-icon name="git-branch-outline"></ion-icon>
+          {{ forkedResult()!.vault_path }}
+        </p>
+        <p class="hint">The new branch is a draft thread — you can open it separately to continue from there.</p>
+        <div class="action-row">
+          <ion-button size="small" fill="outline" (click)="forkedResult.set(null)">
+            <ion-icon slot="start" name="close-outline"></ion-icon>
+            Dismiss
+          </ion-button>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  }
+
+  <!-- ── Error ─────────────────────────────────────────────────────────── -->
+  @if (error()) {
+    <ion-card color="danger" class="ion-margin-top">
+      <ion-card-content>
+        <strong>Error:</strong> {{ error() }}
+      </ion-card-content>
+    </ion-card>
+  }
+
+</ion-content>
+
+<!-- ── Sticky footer: Add Turn + Finalize ── -->
+<ion-footer>
+  @if (!isLoadingDraft() && threadId() && !finalizedPath()) {
+    <ion-toolbar>
+      <div class="footer-actions">
+        <ion-button
+          [disabled]="!canAddTurn()"
+          (click)="addTurn()"
+          fill="solid"
+          expand="block"
+        >
+          @if (isAddingTurn()) {
+            <ion-spinner slot="start" name="crescent"></ion-spinner>
+            Saving…
+          } @else {
+            <ion-icon slot="start" name="add-outline"></ion-icon>
+            Add Turn
+          }
+        </ion-button>
+
+        <ion-button
+          [disabled]="!canFinalize()"
+          (click)="finalize()"
+          fill="outline"
+          color="success"
+          expand="block"
+        >
+          @if (isFinalizing()) {
+            <ion-spinner slot="start" name="crescent"></ion-spinner>
+            Finalizing…
+          } @else {
+            <ion-icon slot="start" name="checkmark-done-outline"></ion-icon>
+            Finalize Thread
+          }
+        </ion-button>
+      </div>
+    </ion-toolbar>
+  }
+</ion-footer>

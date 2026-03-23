@@ -6,6 +6,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { Router } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import {
   IonBadge,
@@ -13,6 +14,9 @@ import {
   IonButtons,
   IonChip,
   IonContent,
+  IonFab,
+  IonFabButton,
+  IonFabList,
   IonHeader,
   IonIcon,
   IonItem,
@@ -23,13 +27,17 @@ import {
   IonSpinner,
   IonTitle,
   IonToolbar,
+  ModalController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
+  addOutline,
+  chatbubblesOutline,
   checkmarkOutline,
   closeOutline,
   ellipse,
   ellipseOutline,
+  flashOutline,
   mailOutline,
   mailOpenOutline,
   pencilOutline,
@@ -39,6 +47,9 @@ import {
   warningOutline,
 } from 'ionicons/icons';
 
+import { NewThreadModalComponent } from '../new-thread/new-thread-modal.component';
+
+import { AgentTask } from '../models/agent-task.model';
 import { EmailMessage } from '../models/email.model';
 import { EmailService } from '../services/email.service';
 import { InboxStateService } from '../services/inbox-state.service';
@@ -73,6 +84,9 @@ function clientClassify(subject: string, from: string): string | null {
     IonButtons,
     IonChip,
     IonContent,
+    IonFab,
+    IonFabButton,
+    IonFabList,
     IonHeader,
     IonIcon,
     IonItem,
@@ -98,6 +112,8 @@ export class InboxPage implements OnInit {
 
   protected readonly inboxState = inject(InboxStateService);
   private readonly emailService = inject(EmailService);
+  private readonly modalController = inject(ModalController);
+  private readonly router = inject(Router);
 
   /** The account object for the currently selected email address. */
   readonly activeAccount = computed(() => {
@@ -107,10 +123,13 @@ export class InboxPage implements OnInit {
 
   constructor() {
     addIcons({
+      addOutline,
+      chatbubblesOutline,
       checkmarkOutline,
       closeOutline,
       ellipse,
       ellipseOutline,
+      flashOutline,
       mailOutline,
       mailOpenOutline,
       pencilOutline,
@@ -230,5 +249,24 @@ export class InboxPage implements OnInit {
 
   trackByMessage(_index: number, msg: EmailMessage): string {
     return msg.id;
+  }
+
+  // ─── FAB actions ──────────────────────────────────────────────
+
+  async openNewAgentTask(): Promise<void> {
+    const modal = await this.modalController.create({
+      component: NewThreadModalComponent,
+      componentProps: { mode: 'task' },
+      breakpoints: [0, 0.7, 1],
+      initialBreakpoint: 0.7,
+    });
+    await modal.present();
+    const { data } = await modal.onDidDismiss<{ task?: AgentTask }>();
+    // Dismiss only — inbox page doesn't manage the task list
+    void data;
+  }
+
+  goToIngest(): void {
+    void this.router.navigate(['/thread-ingest']);
   }
 }

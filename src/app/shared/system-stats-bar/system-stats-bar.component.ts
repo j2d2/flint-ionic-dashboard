@@ -4,7 +4,8 @@
  * Thin (≤40px), non-scrolling, outside ion-split-pane so it's truly global.
  */
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { DecimalPipe, DatePipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
+import { MenuController } from '@ionic/angular/standalone';
 
 import { SystemStatsService } from '../../services/system-stats.service';
 
@@ -14,10 +15,15 @@ import { SystemStatsService } from '../../services/system-stats.service';
   styleUrls: ['./system-stats-bar.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DecimalPipe, DatePipe],
+  imports: [DecimalPipe],
 })
 export class SystemStatsBarComponent {
   protected readonly stats = inject(SystemStatsService);
+  private readonly menuCtrl = inject(MenuController);
+
+  openMenu(): void {
+    void this.menuCtrl.open();
+  }
 
   /** HH:MM:SS string from uptime_sec signal. */
   protected readonly uptime = computed(() => {

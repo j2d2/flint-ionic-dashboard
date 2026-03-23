@@ -1,0 +1,32 @@
+.login-content {
+  --background: var(--ion-color-light);
+}
+
+.login-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  padding: 24px 16px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+}
+
+ion-card-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.login-error {
+  margin: 8px 0;
+  font-size: 0.875rem;
+}
+
+.login-btn {
+  margin-top: 20px;
+}

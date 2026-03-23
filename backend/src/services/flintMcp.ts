@@ -38,6 +38,10 @@ const ALLOWED_TOOLS = new Set([
   'get_haiku_pair',
   // Vault
   'add_to_vault',
+  'read_file',
+  // Vault browse / search
+  'list_directory',
+  'search_vault',
 ]);
 
 async function callTool(name: string, args: object): Promise<unknown> {
@@ -76,9 +80,18 @@ async function callTool(name: string, args: object): Promise<unknown> {
         error?: { message: string };
       };
       if (blob.error) throw new Error(blob.error.message);
-      const content = blob.result?.content;
+      const content = (blob.result as { content?: Array<{ type: string; text: string }>; isError?: boolean })?.content;
       if (content?.[0]?.type === 'text') {
-        return JSON.parse(content[0].text);
+        // FastMCP wraps tool exceptions as isError:true plain text — re-throw
+        if ((blob.result as { isError?: boolean })?.isError) {
+          throw new Error(content[0].text);
+        }
+        try {
+          return JSON.parse(content[0].text);
+        } catch {
+          // Tool returned a plain string (e.g. read_file) — return as-is
+          return content[0].text;
+        }
       }
       return blob.result;
     }
@@ -486,6 +499,35 @@ export async function getHaikuBySourceDoc(sourceDoc: string): Promise<HaikuEntry
 // Vault helpers
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Vault browse / search helpers
+// ---------------------------------------------------------------------------
+
+export interface VaultEntry {
+  name: string;
+  type: 'file' | 'dir';
+  size_bytes: number;
+}
+
+export interface VaultSearchResult {
+  title: string;
+  path: string;
+  excerpt: string;
+  modified: string;
+}
+
+/** List directory contents using Flint core list_directory tool. */
+export async function listVaultDirectory(absPath: string): Promise<{ path: string; entries: VaultEntry[] }> {
+  const r = await callTool('list_directory', { path: absPath }) as { path: string; entries: VaultEntry[] };
+  return r;
+}
+
+/** Full-text search across the vault via Flint search_vault tool. */
+export async function searchVaultNotes(query: string, maxResults = 10): Promise<VaultSearchResult[]> {
+  const r = await callTool('search_vault', { query, max_results: maxResults }) as VaultSearchResult[];
+  return Array.isArray(r) ? r : [];
+}
+
 /** Write a markdown document to the Obsidian vault via Flint. */
 export async function addToVault(
   filename: string,
@@ -500,5 +542,18 @@ export async function addToVault(
     vault_path: obj.vault_path as string | undefined,
     status: obj.status as string | undefined,
   };
+}
+
+/** Read a file from an absolute path via Flint read_file tool. */
+export async function readVaultFile(absPath: string): Promise<string> {
+  const r = await callTool('read_file', { path: absPath });
+  // Flint returns plain string for read_file
+  if (typeof r === 'string') return r;
+  // Some versions return { content: [{type, text}] }
+  const arr = (r as Record<string, unknown>)?.content;
+  if (Array.isArray(arr)) {
+    return arr.map((c: { text?: string }) => c.text ?? '').join('');
+  }
+  return String(r ?? '');
 }
 

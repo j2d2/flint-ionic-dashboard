@@ -30,7 +30,6 @@
         </ion-item>
 
         <ion-button
-          expand="block"
           [disabled]="!url().trim() || isLoading()"
           (click)="analyze()"
           class="analyze-btn"
@@ -172,7 +171,7 @@
                 Has Citations
               </ion-chip>
             }
-            @if (res.brief.credibility_signals.red_flags?.length) {
+            @if (res.brief.credibility_signals.red_flags.length) {
               <div class="red-flags">
                 <strong>Red Flags:</strong>
                 @for (flag of res.brief.credibility_signals.red_flags; track $index) {
@@ -185,7 +184,7 @@
       }
 
       <!-- Swarm tasks -->
-      @if (res.proposed_tasks?.length) {
+      @if (res.proposed_tasks.length) {
         <ion-card class="tasks-card">
           <ion-card-header>
             <ion-card-subtitle>Select tasks to add to the agent queue</ion-card-subtitle>
@@ -228,7 +227,6 @@
             </ion-list>
 
             <ion-button
-              expand="block"
               color="success"
               class="queue-btn"
               [disabled]="selectedTaskIds().size === 0 || isQueuing()"
@@ -260,7 +258,7 @@
           </ion-card-header>
           <ion-card-content>
 
-            @if (res.brief.references.people?.length) {
+            @if (res.brief.references.people.length) {
               <div class="ref-group">
                 <h4 class="ref-group-title">People</h4>
                 <div class="chip-row">
@@ -271,7 +269,7 @@
               </div>
             }
 
-            @if (res.brief.references.tools_and_products?.length) {
+            @if (res.brief.references.tools_and_products.length) {
               <div class="ref-group">
                 <h4 class="ref-group-title">Tools &amp; Products</h4>
                 <div class="chip-row">
@@ -282,7 +280,7 @@
               </div>
             }
 
-            @if (res.brief.references.concepts?.length) {
+            @if (res.brief.references.concepts.length) {
               <div class="ref-group">
                 <h4 class="ref-group-title">Concepts</h4>
                 <div class="chip-row">
@@ -293,7 +291,7 @@
               </div>
             }
 
-            @if (res.brief.references.books?.length) {
+            @if (res.brief.references.books.length) {
               <div class="ref-group">
                 <h4 class="ref-group-title">Books</h4>
                 @for (b of res.brief.references.books; track b) {
@@ -302,7 +300,7 @@
               </div>
             }
 
-            @if (res.brief.references.urls?.length) {
+            @if (res.brief.references.urls.length) {
               <div class="ref-group">
                 <h4 class="ref-group-title">Links</h4>
                 @for (u of res.brief.references.urls; track u) {

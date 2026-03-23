@@ -1,0 +1,163 @@
+:host {
+  display: block;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: var(--ion-color-medium);
+  margin-bottom: 1rem;
+
+  code {
+    background: var(--ion-color-light);
+    padding: 0 4px;
+    border-radius: 3px;
+    font-family: monospace;
+  }
+}
+
+.optional {
+  color: var(--ion-color-medium);
+  font-weight: 400;
+}
+
+.title-input {
+  --background: transparent;
+}
+
+.thread-textarea {
+  --background: var(--ion-color-light);
+  --border-radius: 8px;
+  --padding-start: 8px;
+  --padding-end: 8px;
+  --padding-top: 8px;
+  font-family: monospace;
+  font-size: 0.85rem;
+}
+
+.action-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+/* ── Result banner ──────────────────────────────── */
+
+.result-banner {
+  border-left: 4px solid var(--ion-color-success);
+}
+
+.result-summary {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.result-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.result-text {
+  flex: 1;
+
+  strong {
+    font-size: 1.05rem;
+  }
+
+  p {
+    font-size: 0.85rem;
+    color: var(--ion-color-medium);
+    margin: 4px 0 0;
+  }
+}
+
+.result-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+
+  ion-chip {
+    font-size: 0.75rem;
+    height: 26px;
+  }
+}
+
+/* ── Tasks list ─────────────────────────────────── */
+
+.task-id {
+  font-family: monospace;
+  font-size: 0.8rem;
+  color: var(--ion-color-medium);
+}
+
+/* ── Thread preview ─────────────────────────────── */
+
+.thread-preview {
+  padding: 0;
+}
+
+.branch-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ion-color-tertiary);
+  padding: 6px 16px;
+  background: var(--ion-color-tertiary-tint);
+  border-top: 1px solid var(--ion-color-tertiary-shade);
+}
+
+.turn {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--ion-color-light);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &--user {
+    background: var(--ion-color-light);
+
+    .turn-role {
+      color: var(--ion-color-primary);
+    }
+  }
+
+  &--assistant {
+    background: transparent;
+
+    .turn-role {
+      color: var(--ion-color-success);
+    }
+  }
+}
+
+.turn-header {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 4px;
+
+  ion-icon {
+    font-size: 0.9rem;
+  }
+}
+
+.turn-role {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.turn-content {
+  font-size: 0.85rem;
+  color: var(--ion-color-dark);
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

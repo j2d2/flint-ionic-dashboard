@@ -4,8 +4,10 @@
  */
 import { Router, Request, Response } from 'express';
 import { exec } from 'child_process';
+import { readFile } from 'fs/promises';
 import { promisify } from 'util';
 import os from 'os';
+import path from 'path';
 
 const execAsync = promisify(exec);
 
@@ -91,11 +93,32 @@ systemRouter.get('/stats', async (_req: Request, res: Response) => {
       }
     }
 
+    // Read Flint API usage sidecar written by query_claude_api.py
+    let api_request_count = 0;
+    let api_input_tokens = 0;
+    let api_output_tokens = 0;
+    let api_cost_usd = 0;
+    try {
+      const sidecar = path.join(os.tmpdir(), 'flint_api_usage.json');
+      const raw = await readFile(sidecar, 'utf-8');
+      const usage = JSON.parse(raw);
+      api_request_count = usage.request_count ?? 0;
+      api_input_tokens = usage.total_input_tokens ?? 0;
+      api_output_tokens = usage.total_output_tokens ?? 0;
+      api_cost_usd = Number((usage.total_cost_usd ?? 0).toFixed(4));
+    } catch {
+      // Sidecar absent until first Claude API call — silently default to zeros
+    }
+
     res.json({
       ram_used_gb: Number(ram_used_gb.toFixed(2)),
       ram_total_gb: Number(ram_total_gb.toFixed(2)),
       rx_bytes,
       tx_bytes,
+      api_request_count,
+      api_input_tokens,
+      api_output_tokens,
+      api_cost_usd,
       timestamp_ms: Date.now(),
     });
   } catch (err) {

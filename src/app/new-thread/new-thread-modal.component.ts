@@ -14,6 +14,15 @@ import {
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 
+export interface WrapperMeta {
+  name: string;
+  description: string;
+  trigger: string;
+  agent: string;
+  mode: string;
+  template: string;
+}
+
 import { AgentTask } from '../models/agent-task.model';
 import { Channel, DEFAULT_CHANNELS } from '../models/channel.model';
 import { TaskService } from '../services/task.service';
@@ -78,6 +87,10 @@ export class NewThreadModalComponent implements OnInit {
     { value: 'deep', label: 'Deep Analysis' },
   ];
 
+  /** Prompt wrapper templates */
+  readonly wrappers = signal<WrapperMeta[]>([]);
+  selectedWrapper = '';
+
   get modalTitle(): string {
     return this.mode() === 'thread' ? 'New Thread' : 'New Agent Task';
   }
@@ -96,6 +109,29 @@ export class NewThreadModalComponent implements OnInit {
     if (this.channelId()) this.channel = this.channelId()!;
     if (this.channel === 'code') this.taskType = 'code';
     else if (this.channel === 'research') this.taskType = 'research';
+    this.loadWrappers();
+  }
+
+  loadWrappers(): void {
+    this.http.get<{ wrappers: WrapperMeta[] }>('/api/wrappers').subscribe({
+      next: (res) => this.wrappers.set(res.wrappers),
+      error: () => {},
+    });
+  }
+
+  onWrapperChange(): void {
+    if (!this.selectedWrapper) return;
+    const w = this.wrappers().find(x => x.name === this.selectedWrapper);
+    if (!w) return;
+    // Pre-fill description with the wrapper template (user replaces {{user_input}})
+    if (!this.description.trim()) {
+      this.description = w.template;
+    }
+    // Map wrapper agent type to task type
+    if (w.agent === 'code' || w.mode === 'refactor') this.taskType = 'code';
+    else if (w.mode === 'research' || w.mode === 'planning-review') this.taskType = 'research';
+    else if (w.mode === 'deep') this.taskType = 'deep';
+    else this.taskType = 'standard';
   }
 
   onChannelChange(): void {

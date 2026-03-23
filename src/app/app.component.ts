@@ -23,10 +23,13 @@ import { addIcons } from 'ionicons';
 import {
   addCircleOutline,
   addOutline,
+  bookOutline,
+  buildOutline,
   logoYoutube,
   banOutline,
   chatbubbleEllipsesOutline,
   chatbubbleOutline,
+  chatbubblesOutline,
   checkmarkCircleOutline,
   chevronDownOutline,
   chevronForwardOutline,
@@ -39,6 +42,7 @@ import {
   heartCircleOutline,
   homeOutline,
   listOutline,
+  logOutOutline,
   mailOpenOutline,
   mailOutline,
   searchOutline,
@@ -51,6 +55,7 @@ import {
 
 import { AgentTask } from './models/agent-task.model';
 import { Channel, DEFAULT_CHANNELS } from './models/channel.model';
+import { AuthService } from './services/auth.service';
 import { ChannelService } from './services/channel.service';
 import { EmailService } from './services/email.service';
 import { InboxStateService } from './services/inbox-state.service';
@@ -86,15 +91,19 @@ import { SystemStatsBarComponent } from './shared/system-stats-bar/system-stats-
 })
 export class AppComponent implements OnInit {
   readonly appPages = [
-    { title: 'Agent Tasks',   url: '/agent-tasks',    icon: 'flash-outline' },
-    { title: 'Chat',          url: '/chat',            icon: 'chatbubble-outline' },
-    { title: 'YouTube Agent', url: '/youtube-agent',   icon: 'logo-youtube' },
+    { title: 'Agent Tasks',   url: '/agent-tasks',      icon: 'flash-outline' },
+    { title: 'Thread Ingest', url: '/thread-ingest',    icon: 'chatbubbles-outline' },
+    { title: 'Build Thread',  url: '/thread-builder',   icon: 'build-outline' },
+    { title: 'Vault',         url: '/vault',             icon: 'book-outline' },
+    { title: 'Chat',          url: '/chat',              icon: 'chatbubble-outline' },
+    { title: 'YouTube Agent', url: '/youtube-agent',     icon: 'logo-youtube' },
   ];
 
   readonly channels: Channel[] = DEFAULT_CHANNELS;
   channelsOpen = true;
   inboxOpen = false;
   readonly version = environment.version;
+  readonly features = environment.features;
   readonly reviewTasks = signal<AgentTask[]>([]);
   readonly forReviewTasks = signal<AgentTask[]>([]);
   readonly blockedTasks = signal<AgentTask[]>([]);
@@ -115,14 +124,18 @@ export class AppComponent implements OnInit {
   private readonly socketService = inject(SocketService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
 
   constructor() {
     addIcons({
       addOutline,
       addCircleOutline,
       banOutline,
+      bookOutline,
+      buildOutline,
       chatbubbleOutline,
       chatbubbleEllipsesOutline,
+      chatbubblesOutline,
       checkmarkCircleOutline,
       chevronDownOutline,
       chevronForwardOutline,
@@ -143,13 +156,16 @@ export class AppComponent implements OnInit {
       telescopeOutline,
       trophyOutline,
       warningOutline,
+      logOutOutline,
       logoYoutube,
     });
   }
 
   ngOnInit(): void {
     this.loadSidebarTasks();
-    this.loadInboxAccounts();
+    if (this.features.email) {
+      this.loadInboxAccounts();
+    }
     this.socketService.connect();
     // Keep all sidebar sections current without requiring a page reload.
     this.socketService.onTaskUpdate()
@@ -220,6 +236,10 @@ export class AppComponent implements OnInit {
 
   friendlyAccountLabel(account: string, source: string): string {
     return this.inboxState.accountDisplayName(account, source);
+  }
+
+  logout(): void {
+    this.authService.logout();
   }
 }
 

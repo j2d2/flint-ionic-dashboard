@@ -1,7 +1,7 @@
 <div class="stats-bar">
 
-  <!-- ── Brand ───────────────────────────────────────── -->
-  <span class="stats-bar__brand">Flint Hive</span>
+  <!-- ── Brand — tap to open nav menu on mobile ────────── -->
+  <button class="stats-bar__brand stats-bar__brand--btn" (click)="openMenu()" title="Open menu">Flint Hive</button>
 
   <!-- Spacer pushes all stats to the right -->
   <div class="stats-bar__spacer"></div>
@@ -49,6 +49,23 @@
       @if (ramRange()) {
         <span class="stats-bar__snap" title="Session RAM range">{{ ramRange() }} GB</span>
       }
+    </div>
+  }
+
+  <!-- ── Claude API usage ─────────────────────────────── -->
+  @if (stats.api_request_count() > 0) {
+    <div class="stats-bar__sep"></div>
+    <div class="stats-bar__group" title="Claude API usage since Flint restart">
+      <span class="stats-bar__label">API</span>
+      <span class="stats-bar__value stats-bar__api">
+        {{ stats.api_request_count() }}&thinsp;req
+        &nbsp;
+        ↓&thinsp;{{ stats.api_input_tokens() | number }}&thinsp;in
+        &nbsp;
+        ↑&thinsp;{{ stats.api_output_tokens() | number }}&thinsp;out
+        &nbsp;
+        ${{ stats.api_cost_usd() | number:'1.2-4' }}
+      </span>
     </div>
   }
 

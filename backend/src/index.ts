@@ -13,6 +13,8 @@ import cors from 'cors';
 import { createServer } from 'http';
 import { Server as SocketIoServer } from 'socket.io';
 
+import { authRouter } from './routes/auth';
+import { requireAuth } from './middleware/auth.middleware';
 import { tasksRouter } from './routes/tasks';
 import { approvalsRouter } from './routes/approvals';
 import { threadsRouter } from './routes/threads';
@@ -21,7 +23,12 @@ import { systemRouter } from './routes/system';
 import { haikusRouter } from './routes/haikus';
 import { vaultRouter } from './routes/vault';
 import { youtubeRouter } from './routes/youtube';
-import { emailRouter } from './routes/email';
+import { wrappersRouter } from './routes/wrappers';
+
+// Feature flag — email routes only loaded when FEATURE_EMAIL=true in .env
+const FEATURE_EMAIL = process.env.FEATURE_EMAIL === 'true';
+import { threadIngestRouter } from './routes/thread-ingest';
+import { threadBuilderRouter } from './routes/thread-builder';
 import { startTailing, threadEvents } from './services/toolCallTailer';
 import * as flint from './services/flintMcp';
 import { AgentTask } from './types/AgentTask';
@@ -62,6 +69,12 @@ app.use(express.json({ limit: '64kb' }));
 // ---------------------------------------------------------------------------
 // Routes
 // ---------------------------------------------------------------------------
+// Auth routes — unprotected
+app.use('/api/auth', authRouter);
+
+// All remaining /api/* routes require a valid JWT
+app.use('/api', requireAuth);
+
 app.use('/api/tasks', tasksRouter);
 app.use('/api/approvals', approvalsRouter);
 app.use('/api/threads', threadsRouter);
@@ -70,7 +83,21 @@ app.use('/api/system', systemRouter);
 app.use('/api/haikus', haikusRouter);
 app.use('/api/vault', vaultRouter);
 app.use('/api/youtube', youtubeRouter);
-app.use('/api/email', emailRouter);
+if (FEATURE_EMAIL) {
+  // Lazy-require to avoid importing gmail/outlook token code when disabled
+  const { emailRouter } = require('./routes/email');
+  app.use('/api/email', emailRouter);
+  console.log('[feature] email routes: ENABLED');
+} else {
+  // Return clean 503 so the frontend knows the feature is off
+  app.use('/api/email', (_req: express.Request, res: express.Response) => {
+    res.status(503).json({ disabled: true, message: 'Email feature is disabled (FEATURE_EMAIL not set)' });
+  });
+  console.log('[feature] email routes: DISABLED');
+}
+app.use('/api/wrappers', wrappersRouter);
+app.use('/api/thread-ingest', threadIngestRouter);
+app.use('/api/thread-builder', threadBuilderRouter);
 
 app.get('/api/health', (_req, res) => {
   res.json({

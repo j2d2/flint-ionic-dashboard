@@ -12,6 +12,10 @@ export interface SystemSnapshot {
   ram_total_gb: number;
   rx_bytes: number;
   tx_bytes: number;
+  api_request_count: number;
+  api_input_tokens: number;
+  api_output_tokens: number;
+  api_cost_usd: number;
   timestamp_ms: number;
 }
 
@@ -49,6 +53,12 @@ export class SystemStatsService implements OnDestroy {
     if (!snaps.length || !this._baselineSet) return 0;
     return Math.max(0, (snaps[0].tx_bytes - this._baseline_tx) / 1024 ** 2);
   });
+
+  /** Latest Claude API usage from the Flint sidecar (cumulative since server restart). */
+  readonly api_request_count = computed(() => this.latest()?.api_request_count ?? 0);
+  readonly api_input_tokens  = computed(() => this.latest()?.api_input_tokens ?? 0);
+  readonly api_output_tokens = computed(() => this.latest()?.api_output_tokens ?? 0);
+  readonly api_cost_usd      = computed(() => this.latest()?.api_cost_usd ?? 0);
 
   private _baseline_rx = 0;
   private _baseline_tx = 0;

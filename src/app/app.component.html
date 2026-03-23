@@ -200,50 +200,52 @@
           }
         </ion-list>
 
-        <!-- Inbox Accounts accordion -->
-        <div class="menu-section menu-accordion">
-          <button class="menu-accordion__header" (click)="inboxOpen = !inboxOpen">
-            <ion-icon name="mail-outline"></ion-icon>
-            <span class="menu-accordion__title">Inbox</span>
-            @if (inboxState.pendingCount() > 0) {
-              <ion-badge color="warning" class="menu-section__badge">{{ inboxState.pendingCount() }}</ion-badge>
+        <!-- Inbox Accounts accordion — gated by features.email flag -->
+        @if (features.email) {
+          <div class="menu-section menu-accordion">
+            <button class="menu-accordion__header" (click)="inboxOpen = !inboxOpen">
+              <ion-icon name="mail-outline"></ion-icon>
+              <span class="menu-accordion__title">Inbox</span>
+              @if (inboxState.pendingCount() > 0) {
+                <ion-badge color="warning" class="menu-section__badge">{{ inboxState.pendingCount() }}</ion-badge>
+              }
+              <ion-icon [name]="inboxOpen ? 'chevron-down-outline' : 'chevron-forward-outline'" class="menu-accordion__caret"></ion-icon>
+            </button>
+            @if (inboxOpen) {
+              <ion-list class="menu-section__list">
+                @if (loadingAccounts() && !inboxState.accounts().length) {
+                  <p class="menu-section__empty">Loading…</p>
+                }
+                @for (acct of inboxState.accounts(); track acct.account) {
+                  <ion-menu-toggle autoHide="false">
+                    <ion-item
+                      button
+                      lines="none"
+                      class="sidebar-task-item inbox-acct-item"
+                      [class.inbox-acct-item--active]="inboxState.selectedAccount() === acct.account"
+                      (click)="selectInboxAccount(acct.account)"
+                    >
+                      <ion-icon
+                        slot="start"
+                        [name]="acct.source === 'gmail' ? 'mail-outline' : 'mail-open-outline'"
+                        [color]="acct.source === 'gmail' ? 'danger' : 'primary'"
+                      ></ion-icon>
+                      <ion-label>
+                        <p class="sidebar-task-title">{{ friendlyAccountLabel(acct.account, acct.source) }}</p>
+                      </ion-label>
+                      @if (acct.unread_count > 0) {
+                        <ion-badge slot="end" color="danger">{{ acct.unread_count }}</ion-badge>
+                      }
+                    </ion-item>
+                  </ion-menu-toggle>
+                }
+                @if (!loadingAccounts() && !inboxState.accounts().length) {
+                  <p class="menu-section__empty">Open Inbox to load accounts</p>
+                }
+              </ion-list>
             }
-            <ion-icon [name]="inboxOpen ? 'chevron-down-outline' : 'chevron-forward-outline'" class="menu-accordion__caret"></ion-icon>
-          </button>
-          @if (inboxOpen) {
-            <ion-list class="menu-section__list">
-              @if (loadingAccounts() && !inboxState.accounts().length) {
-                <p class="menu-section__empty">Loading…</p>
-              }
-              @for (acct of inboxState.accounts(); track acct.account) {
-                <ion-menu-toggle autoHide="false">
-                  <ion-item
-                    button
-                    lines="none"
-                    class="sidebar-task-item inbox-acct-item"
-                    [class.inbox-acct-item--active]="inboxState.selectedAccount() === acct.account"
-                    (click)="selectInboxAccount(acct.account)"
-                  >
-                    <ion-icon
-                      slot="start"
-                      [name]="acct.source === 'gmail' ? 'mail-outline' : 'mail-open-outline'"
-                      [color]="acct.source === 'gmail' ? 'danger' : 'primary'"
-                    ></ion-icon>
-                    <ion-label>
-                      <p class="sidebar-task-title">{{ friendlyAccountLabel(acct.account, acct.source) }}</p>
-                    </ion-label>
-                    @if (acct.unread_count > 0) {
-                      <ion-badge slot="end" color="danger">{{ acct.unread_count }}</ion-badge>
-                    }
-                  </ion-item>
-                </ion-menu-toggle>
-              }
-              @if (!loadingAccounts() && !inboxState.accounts().length) {
-                <p class="menu-section__empty">Open Inbox to load accounts</p>
-              }
-            </ion-list>
-          }
-        </div>
+          </div>
+        }
 
         <!-- 4. Haiku Leaderboard -->
         <div class="menu-section menu-section--last">
@@ -268,6 +270,12 @@
                 <h3>Device Info</h3>
                 <p class="footer-version">Version {{ version }}</p>
               </ion-label>
+            </ion-item>
+          </ion-menu-toggle>
+          <ion-menu-toggle autoHide="false">
+            <ion-item button lines="none" (click)="logout()" class="footer-logout-item">
+              <ion-icon slot="start" name="log-out-outline"></ion-icon>
+              <ion-label>Sign Out</ion-label>
             </ion-item>
           </ion-menu-toggle>
         </ion-toolbar>

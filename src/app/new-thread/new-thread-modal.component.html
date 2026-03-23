@@ -88,9 +88,25 @@
     </ion-select>
   </ion-item>
 
-  <ion-button expand="block" class="ion-margin-top"
-    [disabled]="isSubmitting() || !title.trim() || (!!duplicateTask() && !duplicateConfirmed())"
-    (click)="submit()">
-    {{ submitLabel }}
-  </ion-button>
+  @if (wrappers().length) {
+    <ion-item>
+      <ion-label>Template</ion-label>
+      <ion-select [(ngModel)]="selectedWrapper" interface="popover" placeholder="None"
+        (ngModelChange)="onWrapperChange()">
+        <ion-select-option value="">None</ion-select-option>
+        @for (w of wrappers(); track w.name) {
+          <ion-select-option [value]="w.name">{{ w.description || w.name }}</ion-select-option>
+        }
+      </ion-select>
+    </ion-item>
+  }
+
+  <div class="ion-padding-top" style="display:flex;justify-content:flex-end;gap:8px">
+    <ion-button fill="outline" color="medium" size="small" (click)="dismiss()">Cancel</ion-button>
+    <ion-button size="small"
+      [disabled]="isSubmitting() || !title.trim() || (!!duplicateTask() && !duplicateConfirmed())"
+      (click)="submit()">
+      {{ submitLabel }}
+    </ion-button>
+  </div>
 </ion-content>
