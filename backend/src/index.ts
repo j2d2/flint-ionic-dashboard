@@ -24,6 +24,7 @@ import { haikusRouter } from './routes/haikus';
 import { vaultRouter } from './routes/vault';
 import { youtubeRouter } from './routes/youtube';
 import { wrappersRouter } from './routes/wrappers';
+import { daemonRouter } from './routes/daemon';
 
 // Feature flag — email routes only loaded when FEATURE_EMAIL=true in .env
 const FEATURE_EMAIL = process.env.FEATURE_EMAIL === 'true';
@@ -96,6 +97,7 @@ if (FEATURE_EMAIL) {
   console.log('[feature] email routes: DISABLED');
 }
 app.use('/api/wrappers', wrappersRouter);
+app.use('/api/daemon', daemonRouter);
 app.use('/api/thread-ingest', threadIngestRouter);
 app.use('/api/thread-builder', threadBuilderRouter);
 

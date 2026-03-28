@@ -59,6 +59,13 @@ export class AgentTasksPage implements OnInit, OnDestroy {
     return Array.from(seen).sort();
   });
 
+  readonly improvementsCount = computed(() =>
+    this.tasks().filter((t) =>
+      t.status !== 'done' &&
+      t.tags ? this.parseTags(t.tags).includes('improvements') : false
+    ).length
+  );
+
   /** Parse tags stored as CSV or JSON array (e.g. '["foo","bar"]' or 'foo,bar') */
   parseTags(raw: string): string[] {
     if (!raw) return [];
@@ -111,7 +118,7 @@ export class AgentTasksPage implements OnInit, OnDestroy {
   readonly statusColor = statusColor;
 
   constructor() {
-    addIcons({ documentTextOutline, addOutline, searchOutline, trendingUpOutline, timeOutline, flashOutline, gitBranchOutline, chatbubbleEllipsesOutline });
+    addIcons({ documentTextOutline, documentOutline, addOutline, searchOutline, trendingUpOutline, timeOutline, flashOutline, gitBranchOutline, chatbubbleEllipsesOutline });
   }
 
   priorityColor(p: number): string {

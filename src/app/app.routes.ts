@@ -59,6 +59,10 @@ export const routes: Routes = [
         loadComponent: () => import('./thread-builder/thread-builder.page').then((m) => m.ThreadBuilderPage),
       },
       {
+        path: 'daemon',
+        loadComponent: () => import('./daemon/daemon.page').then((m) => m.DaemonPage),
+      },
+      {
         path: '',
         redirectTo: 'dashboard',
         pathMatch: 'full',

@@ -1,0 +1,309 @@
+// daemon.page.scss
+
+.status-card {
+  margin: 12px 16px 8px;
+}
+
+.status-card__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+
+  &--green { background: var(--ion-color-success); }
+  &--red   { background: var(--ion-color-danger); }
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  row-gap: 6px;
+  margin-bottom: 8px;
+}
+
+.status-grid__label {
+  font-size: 0.75rem;
+  color: var(--ion-color-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.status-grid__value {
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  &--stale { color: var(--ion-color-warning); }
+}
+
+.status-hint {
+  font-size: 0.78rem;
+  color: var(--ion-color-medium);
+  margin: 4px 0 0;
+
+  code {
+    background: var(--ion-color-light);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-family: var(--ion-font-family-monospace, monospace);
+  }
+}
+
+// Action result message (approve / reject output)
+.action-msg {
+  margin: 0 16px 8px;
+  padding: 10px 12px;
+  background: var(--ion-color-light);
+  border-radius: 8px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.8rem;
+
+  ion-icon { flex-shrink: 0; margin-top: 2px; }
+
+  .action-msg__text {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: var(--ion-font-family-monospace, monospace);
+    font-size: 0.78rem;
+  }
+}
+
+// Plan card
+.plan-card {
+  margin: 8px 16px;
+}
+
+.plan-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.plan-header__id {
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: var(--ion-font-family-monospace, monospace);
+}
+
+.plan-meta {
+  font-size: 0.75rem;
+  color: var(--ion-color-medium);
+  margin: 2px 0 0;
+}
+
+// Queue stats row
+.queue-stats {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 12px 0 8px;
+}
+
+.queue-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 44px;
+}
+
+.queue-stat__num {
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1;
+
+  &--pending  { color: var(--ion-color-primary); }
+  &--running  { color: var(--ion-color-tertiary); }
+  &--review   { color: var(--ion-color-warning); }
+  &--blocked  { color: var(--ion-color-danger); }
+  &--done     { color: var(--ion-color-success); }
+}
+
+.queue-stat__label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ion-color-medium);
+}
+
+.plan-cost {
+  font-size: 0.72rem;
+  color: var(--ion-color-medium);
+  margin: 4px 0 8px;
+}
+
+.plan-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+// Phase cards
+.phase-card {
+  margin: 6px 16px;
+}
+
+.phase-title {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ion-color-medium);
+}
+
+.phase-items {
+  padding: 0 4px 8px;
+}
+
+.plan-item {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--ion-color-light);
+
+  &:last-child { border-bottom: none; }
+}
+
+.plan-item__header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.plan-item__action {
+  font-size: 0.72rem;
+  height: 22px;
+  --padding-start: 8px;
+  --padding-end: 8px;
+}
+
+.plan-item__ref {
+  font-size: 0.72rem;
+  color: var(--ion-color-medium);
+  font-family: var(--ion-font-family-monospace, monospace);
+}
+
+.plan-item__time {
+  margin-left: auto;
+  font-size: 0.72rem;
+  color: var(--ion-color-medium);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.plan-item__title {
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin: 2px 0 4px;
+}
+
+.plan-item__rationale {
+  font-size: 0.75rem;
+  color: var(--ion-color-medium);
+  margin: 0;
+}
+
+// Flags card
+.flags-card {
+  margin: 6px 16px;
+}
+
+.flags-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ion-text-color);
+  width: 100%;
+
+  .flags-toggle__caret { margin-left: auto; }
+}
+
+.flag-item { --padding-start: 0; }
+
+.flag-text {
+  font-size: 0.78rem;
+  white-space: normal;
+}
+
+// Improvements card
+.improvements-card {
+  margin: 6px 16px 16px;
+
+  ion-card-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9rem;
+  }
+}
+
+.improvement-item { --padding-start: 0; }
+
+.plan-err {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  padding: 24px 0;
+}
+
+// ── Daemon controls (start / stop / re-survey) ────────────────────────────
+.daemon-controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--ion-border-color, rgba(0,0,0,0.08));
+}
+
+// ── Log viewer ────────────────────────────────────────────────────────────
+.log-card {
+  margin: 0 16px 16px;
+
+  &__body {
+    padding: 0 8px 8px;
+  }
+}
+
+.log-terminal {
+  font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 360px;
+  overflow-y: auto;
+  background: var(--ion-color-dark, #1a1a2e);
+  color: #a8e6a3;
+  padding: 12px;
+  border-radius: 6px;
+}
+
+.log-empty {
+  color: var(--ion-color-medium);
+  font-style: italic;
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 16px 0;
+  margin: 0;
+}

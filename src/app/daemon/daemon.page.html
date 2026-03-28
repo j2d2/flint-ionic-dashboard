@@ -1,0 +1,257 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Dee — Daemon</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="load()" title="Refresh">
+        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- ── Status card ── -->
+  <ion-card class="status-card">
+    <ion-card-header>
+      <ion-card-title class="status-card__title">
+        @if (status()?.is_running) {
+          <span class="status-dot status-dot--green"></span>
+          <span>Running</span>
+        } @else {
+          <span class="status-dot status-dot--red"></span>
+          <span>Stopped</span>
+        }
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      @if (status(); as s) {
+        <div class="status-grid">
+          <span class="status-grid__label">PID</span>
+          <span class="status-grid__value">{{ s.pid ?? '—' }}</span>
+          <span class="status-grid__label">Heartbeat</span>
+          <span class="status-grid__value" [class.status-grid__value--stale]="heartbeatStale()">
+            {{ heartbeatLabel() ?? '—' }}
+            @if (heartbeatStale()) {
+              <ion-icon name="alert-circle-outline" color="warning"></ion-icon>
+            }
+          </span>
+        </div>
+        <p class="status-hint">
+          @if (!s.is_running) {
+            Start with: <code>flint d start</code>
+          } @else if (heartbeatStale()) {
+            Heartbeat stale — daemon may be hung. Try <code>flint d restart</code>
+          }
+        </p>
+        <!-- Start / Stop / Re-Survey controls -->
+        <div class="daemon-controls">
+          @if (s.is_running) {
+            <ion-button color="danger" fill="outline" size="small"
+                        [disabled]="isActing()" (click)="stopDaemon()">
+              <ion-icon slot="start" name="stop-outline"></ion-icon>Stop
+            </ion-button>
+          } @else {
+            <ion-button color="success" size="small"
+                        [disabled]="isActing()" (click)="startDaemon()">
+              <ion-icon slot="start" name="play-outline"></ion-icon>Start
+            </ion-button>
+          }
+          <ion-button color="tertiary" fill="outline" size="small"
+                      [disabled]="isActing()" (click)="forceReSurvey()">
+            <ion-icon slot="start" name="flash-outline"></ion-icon>Re-Survey
+          </ion-button>
+        </div>
+      } @else {
+        <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
+      }
+    </ion-card-content>
+  </ion-card>
+
+  <!-- ── Action result message ── -->
+  @if (actionMsg(); as msg) {
+    <div class="action-msg">
+      <ion-icon name="terminal-outline"></ion-icon>
+      <pre class="action-msg__text">{{ msg }}</pre>
+    </div>
+  }
+
+  <!-- ── Survey plan ── -->
+  @if (isLoading()) {
+    <ion-card>
+      <ion-card-content>
+        <ion-skeleton-text animated style="width: 40%; margin-bottom: 8px"></ion-skeleton-text>
+        <ion-skeleton-text animated style="width: 80%; margin-bottom: 6px"></ion-skeleton-text>
+        <ion-skeleton-text animated style="width: 70%"></ion-skeleton-text>
+      </ion-card-content>
+    </ion-card>
+  } @else if (planErr(); as err) {
+    <ion-card color="light">
+      <ion-card-content class="plan-err">
+        <ion-icon name="alert-circle-outline" color="warning"></ion-icon>
+        <p>{{ err }}</p>
+        <ion-button fill="outline" size="small" (click)="load()">Retry</ion-button>
+      </ion-card-content>
+    </ion-card>
+  } @else if (plan(); as p) {
+
+    <!-- Plan header -->
+    <ion-card class="plan-card">
+      <ion-card-header>
+        <div class="plan-header">
+          <div class="plan-header__id">{{ p.plan_id }}</div>
+          <ion-badge [color]="planStatusColor(p.status)">{{ p.status }}</ion-badge>
+        </div>
+        <p class="plan-meta">Generated {{ formatDate(p.generated_at) }}
+          @if (p.approved_at) { · Approved {{ formatDate(p.approved_at) }} }
+        </p>
+      </ion-card-header>
+
+      <ion-card-content>
+
+        <!-- Queue stats -->
+        <div class="queue-stats">
+          <div class="queue-stat">
+            <span class="queue-stat__num queue-stat__num--pending">{{ p.queue_stats.pending }}</span>
+            <span class="queue-stat__label">pending</span>
+          </div>
+          <div class="queue-stat">
+            <span class="queue-stat__num queue-stat__num--running">{{ p.queue_stats.running }}</span>
+            <span class="queue-stat__label">running</span>
+          </div>
+          <div class="queue-stat">
+            <span class="queue-stat__num queue-stat__num--review">{{ p.queue_stats.in_review }}</span>
+            <span class="queue-stat__label">in review</span>
+          </div>
+          <div class="queue-stat">
+            <span class="queue-stat__num queue-stat__num--blocked">{{ p.queue_stats.blocked }}</span>
+            <span class="queue-stat__label">blocked</span>
+          </div>
+          <div class="queue-stat">
+            <span class="queue-stat__num queue-stat__num--done">{{ p.queue_stats.done }}</span>
+            <span class="queue-stat__label">done</span>
+          </div>
+        </div>
+
+        @if (p.claude_cost_usd) {
+          <p class="plan-cost">Survey cost: ${{ p.claude_cost_usd.toFixed(4) }} · {{ p.claude_model }} · {{ p.claude_tokens_in }}↑ {{ p.claude_tokens_out }}↓ tokens</p>
+        }
+
+        <!-- Approve / Reject buttons — only for pending plans -->
+        @if (p.status === 'pending') {
+          <div class="plan-actions">
+            <ion-button color="success" (click)="approvePlan()">
+              <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+              Approve
+            </ion-button>
+            <ion-button color="danger" fill="outline" (click)="rejectPlan()">
+              <ion-icon slot="start" name="close-circle-outline"></ion-icon>
+              Reject
+            </ion-button>
+          </div>
+        }
+
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Phase groups -->
+    @for (group of phaseGroups(); track group[0]) {
+      <ion-card class="phase-card">
+        <ion-card-header>
+          <ion-card-title class="phase-title">Phase {{ group[0] }}</ion-card-title>
+        </ion-card-header>
+        <ion-card-content class="phase-items">
+          @for (item of group[1]; track item.ref) {
+            <div class="plan-item">
+              <div class="plan-item__header">
+                <ion-chip [color]="actionColor(item.action)" class="plan-item__action">{{ item.action }}</ion-chip>
+                <span class="plan-item__ref">{{ item.ref }}</span>
+                @if (item.est_minutes > 0) {
+                  <span class="plan-item__time">
+                    <ion-icon name="time-outline"></ion-icon>{{ item.est_minutes }}m
+                  </span>
+                }
+              </div>
+              <p class="plan-item__title">{{ item.title }}</p>
+              <p class="plan-item__rationale">{{ item.rationale }}</p>
+            </div>
+          }
+        </ion-card-content>
+      </ion-card>
+    }
+
+    <!-- Flags -->
+    @if (p.flags?.length) {
+      <ion-card class="flags-card">
+        <ion-card-header>
+          <button class="flags-toggle" (click)="flagsOpen = !flagsOpen">
+            <ion-icon name="alert-circle-outline" color="warning"></ion-icon>
+            <span>{{ p.flags.length }} Flag{{ p.flags.length !== 1 ? 's' : '' }}</span>
+            <ion-icon [name]="flagsOpen ? 'chevron-down-outline' : 'chevron-forward-outline'" class="flags-toggle__caret"></ion-icon>
+          </button>
+        </ion-card-header>
+        @if (flagsOpen) {
+          <ion-card-content>
+            <ion-list lines="none">
+              @for (flag of p.flags; track $index) {
+                <ion-item class="flag-item">
+                  <ion-note class="flag-text">{{ flag }}</ion-note>
+                </ion-item>
+              }
+            </ion-list>
+          </ion-card-content>
+        }
+      </ion-card>
+    }
+
+    <!-- Improvements -->
+    @if (p.improvements?.length) {
+      <ion-card class="improvements-card">
+        <ion-card-header>
+          <ion-card-title>
+            <ion-icon name="flash-outline" color="tertiary"></ion-icon>
+            Dee's Improvement Ideas
+          </ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <ion-list lines="none">
+            @for (idea of p.improvements; track $index) {
+              <ion-item class="improvement-item">
+                <ion-label class="ion-text-wrap">{{ idea }}</ion-label>
+              </ion-item>
+            }
+          </ion-list>
+        </ion-card-content>
+      </ion-card>
+    }
+
+  }
+
+  <!-- ── Daemon Log viewer ── -->
+  <ion-card class="log-card">
+    <ion-card-header>
+      <button class="flags-toggle" (click)="toggleLogs()">
+        <ion-icon name="terminal-outline"></ion-icon>
+        <span>Daemon Log</span>
+        <ion-icon [name]="logsOpen() ? 'chevron-down-outline' : 'chevron-forward-outline'"
+                  class="flags-toggle__caret"></ion-icon>
+      </button>
+    </ion-card-header>
+    @if (logsOpen()) {
+      <ion-card-content class="log-card__body">
+        @if (logLines().length === 0) {
+          <p class="log-empty">Connecting to log stream…</p>
+        } @else {
+          <pre class="log-terminal">{{ logLines().join('\n') }}</pre>
+        }
+      </ion-card-content>
+    }
+  </ion-card>
+
+</ion-content>

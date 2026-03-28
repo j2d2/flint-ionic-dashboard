@@ -112,6 +112,55 @@
   --min-height: auto;
   contain: none;
   overflow: visible;
+  display: flex;
+  align-items: center;
+  gap: 0;
 }
 
+// ─── Dee's Ideas quick-filter chip ──────────────────
+
+.dee-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  padding: 4px 10px 4px 8px;
+  margin: 4px 6px 4px 12px;
+  border-radius: 20px;
+  border: 1.5px solid var(--ion-color-tertiary, #7c4dff);
+  background: transparent;
+  color: var(--ion-color-tertiary, #7c4dff);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+
+  ion-icon { font-size: 13px; }
+
+  &__badge {
+    background: var(--ion-color-tertiary, #7c4dff);
+    color: #fff;
+    border-radius: 10px;
+    padding: 0 5px;
+    font-size: 0.7rem;
+    line-height: 16px;
+    min-width: 16px;
+    text-align: center;
+    transition: background 0.15s;
+  }
+
+  &--active {
+    background: var(--ion-color-tertiary, #7c4dff);
+    color: #fff;
+
+    .dee-chip__badge {
+      background: rgba(255,255,255,0.25);
+    }
+  }
+
+  &:hover:not(&--active) {
+    background: rgba(var(--ion-color-tertiary-rgb, 124,77,255), 0.1);
+  }
+}
 

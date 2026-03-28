@@ -49,13 +49,24 @@
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
-  @if (allTags().length > 0) {
+  @if (allTags().length > 0 || improvementsCount() > 0) {
   <ion-toolbar class="tag-filter-bar">
+    @if (improvementsCount() > 0) {
+      <button class="dee-chip"
+              [class.dee-chip--active]="activeTagFilter() === 'improvements'"
+              (click)="toggleTagFilter('improvements')">
+        <ion-icon name="flash-outline"></ion-icon>
+        <span>Dee's Ideas</span>
+        <span class="dee-chip__badge">{{ improvementsCount() }}</span>
+      </button>
+    }
+    @if (allTags().length > 0) {
     <app-chip-scroll
       [tags]="allTags()"
       [activeTag]="activeTagFilter()"
       (tagClick)="toggleTagFilter($event)">
     </app-chip-scroll>
+    }
   </ion-toolbar>
   }
 </ion-header>

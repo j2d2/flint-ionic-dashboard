@@ -45,6 +45,7 @@ import {
   logOutOutline,
   mailOpenOutline,
   mailOutline,
+  pulseOutline,
   searchOutline,
   sendOutline,
   serverOutline,
@@ -92,6 +93,7 @@ import { SystemStatsBarComponent } from './shared/system-stats-bar/system-stats-
 export class AppComponent implements OnInit {
   readonly appPages = [
     { title: 'Agent Tasks',   url: '/agent-tasks',      icon: 'flash-outline' },
+    { title: 'Dee (Daemon)',  url: '/daemon',            icon: 'pulse-outline' },
     { title: 'Thread Ingest', url: '/thread-ingest',    icon: 'chatbubbles-outline' },
     { title: 'Build Thread',  url: '/thread-builder',   icon: 'build-outline' },
     { title: 'Vault',         url: '/vault',             icon: 'book-outline' },
@@ -150,6 +152,7 @@ export class AppComponent implements OnInit {
       listOutline,
       mailOpenOutline,
       mailOutline,
+      pulseOutline,
       searchOutline,
       serverOutline,
       sendOutline,
