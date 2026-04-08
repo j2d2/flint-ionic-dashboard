@@ -14,4 +14,4 @@ This folder acts as a repo-local mini-vault for build execution details.
 ## Source Plan
 
 Primary implementation plan lives in the vault:
-`/Users/jd/Documents/ai-ml/openclaw-instance/projects/obsidian-vault/Inbox/agent-dashboard-build-plan.md`
+`/Users/jd/Documents/ai-ml/flint-instance/projects/obsidian-vault/Inbox/agent-dashboard-build-plan.md`
