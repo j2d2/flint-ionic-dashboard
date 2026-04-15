@@ -9,12 +9,13 @@ import {
   ModalController, ToastController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { chatbubbleOutline, closeOutline, documentTextOutline, gitBranchOutline, leafOutline, openOutline, sparklesOutline } from 'ionicons/icons';
+import { addOutline, chatbubbleOutline, closeOutline, documentTextOutline, gitBranchOutline, leafOutline, openOutline, sparklesOutline } from 'ionicons/icons';
 
 import { AgentTask, HaikuEntry, PlanExecuteResult, parseTaskDate, statusColor } from '../models/agent-task.model';
 import { MarkdownPipe } from '../pipes/markdown.pipe';
 import { VaultDocViewerComponent } from '../shared/vault-doc-viewer/vault-doc-viewer.component';
 import { TaskService } from '../services/task.service';
+import { ThreadService } from '../services/thread.service';
 
 @Component({
   selector: 'app-task-detail-page',
@@ -48,11 +49,19 @@ export class TaskDetailPage implements OnInit {
   readonly isPlanningWithClaude = signal(false);
   readonly planResult = signal<PlanExecuteResult | null>(null);
 
+  // ─── Add-to-Thread panel signals ───
+  readonly addToThreadPanel = signal(false);
+  readonly threadTurnPrompt = signal('');
+  readonly threadTurnResponse = signal('');
+  readonly isAddingToThread = signal(false);
+  readonly addToThreadError = signal<string | null>(null);
+
   readonly statusColor = statusColor;
 
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly taskService = inject(TaskService);
+  private readonly threadService = inject(ThreadService);
   private readonly toastController = inject(ToastController);
   private readonly modalController = inject(ModalController);
   private readonly datePipe = inject(DatePipe);
@@ -233,7 +242,57 @@ export class TaskDetailPage implements OnInit {
   }
 
   constructor() {
-    addIcons({ chatbubbleOutline, closeOutline, documentTextOutline, gitBranchOutline, leafOutline, openOutline, sparklesOutline });
+    addIcons({ addOutline, chatbubbleOutline, closeOutline, documentTextOutline, gitBranchOutline, leafOutline, openOutline, sparklesOutline });
+  }
+
+  /** Open the Add-to-Thread panel, pre-filling the prompt with the task title. */
+  openAddToThreadPanel(): void {
+    const t = this.task();
+    if (!t) return;
+    this.threadTurnPrompt.set(t.title ?? '');
+    this.threadTurnResponse.set('');
+    this.addToThreadError.set(null);
+    this.addToThreadPanel.set(true);
+  }
+
+  /** POST the turn to the active thread-builder thread stored in localStorage. */
+  async addToThread(): Promise<void> {
+    const threadId = localStorage.getItem('flint_active_thread_id');
+    if (!threadId) {
+      const toast = await this.toastController.create({
+        message: 'No active thread — open Thread Builder and start one first',
+        duration: 3000,
+        color: 'warning',
+      });
+      await toast.present();
+      return;
+    }
+    const prompt = this.threadTurnPrompt().trim();
+    const response = this.threadTurnResponse().trim();
+    if (!prompt || !response) {
+      this.addToThreadError.set('Both prompt and response are required');
+      return;
+    }
+    this.isAddingToThread.set(true);
+    this.addToThreadError.set(null);
+    this.threadService.addTurn(threadId, prompt, response).subscribe({
+      next: async ({ turn_number }) => {
+        this.addToThreadPanel.set(false);
+        this.threadTurnPrompt.set('');
+        this.threadTurnResponse.set('');
+        this.isAddingToThread.set(false);
+        const toast = await this.toastController.create({
+          message: `Turn ${turn_number} added to thread`,
+          duration: 2500,
+          color: 'success',
+        });
+        await toast.present();
+      },
+      error: async (err) => {
+        this.addToThreadError.set(err?.error?.error ?? err?.message ?? 'Failed to add turn');
+        this.isAddingToThread.set(false);
+      },
+    });
   }
 
   formatDate(ts?: string | number): string {

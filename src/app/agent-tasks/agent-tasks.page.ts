@@ -1,5 +1,6 @@
 import { CommonModule, DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Router, RouterModule } from '@angular/router';
 import {
   IonBadge, IonButton, IonButtons, IonContent, IonFab, IonFabButton, IonFabList,
@@ -41,9 +42,11 @@ export class AgentTasksPage implements OnInit, OnDestroy {
   readonly total = signal(0);
   readonly isLoading = signal(false);
   readonly isLoadingMore = signal(false);
+  readonly loadError = signal<string | null>(null);
   readonly filter = signal<'active' | 'all' | 'review'>(
     (localStorage.getItem('agent-tasks:filter') as 'active' | 'all' | 'review') ?? 'active'
   );
+  readonly categoryFilter = signal<string>('all');
   readonly sortBy = signal<'priority' | 'updated'>('updated');
   readonly searchOpen = signal(false);
   readonly searchQuery = signal('');
@@ -51,6 +54,42 @@ export class AgentTasksPage implements OnInit, OnDestroy {
 
   readonly sortLabel = computed(() => this.sortBy() === 'updated' ? 'Recent' : 'Priority');
   readonly reviewDueCount = computed(() => this.tasks().filter((t) => t.status === 'in_review' || t.review_due === 1).length);
+  readonly categories = computed(() => {
+    const counts = new Map<string, number>();
+    for (const task of this.tasks()) {
+      const key = (task.task_type?.trim() || 'uncategorized').toLowerCase();
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    return Array.from(counts.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+  });
+
+  readonly hasVisibleTasks = computed(() => this.filteredTasks().length > 0);
+
+  readonly emptyStateMessage = computed(() => {
+    if (this.loadError()) return this.loadError();
+    if (this.tasks().length === 0) {
+      return 'No tasks were returned by the API yet.';
+    }
+    const details: string[] = [];
+    if (this.filter() !== 'all') {
+      details.push(`filter \"${this.filter()}\"`);
+    }
+    if (this.categoryFilter() !== 'all') {
+      details.push(`category \"${this.categoryFilter()}\"`);
+    }
+    if (this.searchQuery().trim()) {
+      details.push(`search \"${this.searchQuery().trim()}\"`);
+    }
+    if (this.activeTagFilter()) {
+      details.push(`tag \"${this.activeTagFilter()}\"`);
+    }
+    if (details.length === 0) {
+      return 'No tasks match your current view.';
+    }
+    return `No tasks match ${details.join(', ')}.`;
+  });
   readonly allTags = computed(() => {
     const seen = new Set<string>();
     for (const t of this.tasks()) {
@@ -100,6 +139,10 @@ export class AgentTasksPage implements OnInit, OnDestroy {
       list = list.filter((t) =>
         t.tags ? this.parseTags(t.tags).includes(activeTag) : false
       );
+    }
+    const category = this.categoryFilter();
+    if (category !== 'all') {
+      list = list.filter((t) => (t.task_type?.trim().toLowerCase() || 'uncategorized') === category);
     }
     // Pre-compute timestamps once per item so parseTaskDate() is called O(n)
     // rather than O(n log n) times inside the comparator.
@@ -173,12 +216,22 @@ export class AgentTasksPage implements OnInit, OnDestroy {
     this.offset = 0;
     this.allLoaded = false;
     this.isLoading.set(true);
+    this.loadError.set(null);
     this.taskService.getTasks(0, PAGE_SIZE).subscribe({
       next: ({ tasks, total }) => {
         this.tasks.set(tasks);
         this.total.set(total);
         this.offset = tasks.length;
         this.allLoaded = tasks.length >= total;
+      },
+      error: (err: HttpErrorResponse) => {
+        if (err.status === 401) {
+          this.loadError.set('Your session expired. Please log in again.');
+        } else {
+          this.loadError.set(err.error?.error ?? err.message ?? 'Unable to load tasks right now.');
+        }
+        this.isLoading.set(false);
+        (event as any)?.detail?.complete();
       },
       complete: () => {
         this.isLoading.set(false);
@@ -207,6 +260,15 @@ export class AgentTasksPage implements OnInit, OnDestroy {
         (event as any).target.complete();
         if (this.allLoaded) (event as any).target.disabled = true;
       },
+      error: (err: HttpErrorResponse) => {
+        if (err.status === 401) {
+          this.loadError.set('Your session expired. Please log in again.');
+        } else {
+          this.loadError.set(err.error?.error ?? err.message ?? 'Unable to load more tasks.');
+        }
+        this.isLoadingMore.set(false);
+        (event as any).target.complete();
+      },
       complete: () => this.isLoadingMore.set(false),
     });
   }
@@ -224,6 +286,14 @@ export class AgentTasksPage implements OnInit, OnDestroy {
 
   toggleTagFilter(tag: string): void {
     this.activeTagFilter.update((current) => current === tag ? null : tag);
+  }
+
+  clearAllFilters(): void {
+    this.filter.set('all');
+    localStorage.setItem('agent-tasks:filter', 'all');
+    this.categoryFilter.set('all');
+    this.activeTagFilter.set(null);
+    this.searchQuery.set('');
   }
 
   async openNewAgentTask(): Promise<void> {

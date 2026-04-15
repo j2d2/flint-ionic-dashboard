@@ -179,8 +179,57 @@
           Chat
         </ion-button>
       </ion-col>
+      <ion-col size="auto">
+        <ion-button size="small" fill="outline" color="secondary" (click)="openAddToThreadPanel()">
+          <ion-icon slot="start" name="add-outline"></ion-icon>
+          Add to Thread
+        </ion-button>
+      </ion-col>
     </ion-row>
   </ion-grid>
+
+  <!-- ─── Add-to-Thread inline panel ─── -->
+  @if (addToThreadPanel()) {
+    <ion-card class="add-to-thread-card ion-margin-top">
+      <ion-card-header>
+        <ion-card-subtitle>Active Thread — append a turn</ion-card-subtitle>
+        <ion-card-title>Add Turn</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-textarea
+          label="Prompt (user message)"
+          labelPlacement="floating"
+          [value]="threadTurnPrompt()"
+          (ionInput)="threadTurnPrompt.set($any($event.detail.value) ?? '')"
+          rows="3"
+          class="ion-margin-bottom">
+        </ion-textarea>
+        <ion-textarea
+          label="Response (assistant reply)"
+          labelPlacement="floating"
+          [value]="threadTurnResponse()"
+          (ionInput)="threadTurnResponse.set($any($event.detail.value) ?? '')"
+          rows="5">
+        </ion-textarea>
+        @if (addToThreadError()) {
+          <p class="add-to-thread-error ion-margin-top">{{ addToThreadError() }}</p>
+        }
+        <div class="ion-margin-top" style="display:flex;gap:8px;justify-content:flex-end">
+          <ion-button fill="outline" color="medium" size="small"
+            (click)="addToThreadPanel.set(false); addToThreadError.set(null)">
+            <ion-icon slot="start" name="close-outline"></ion-icon>
+            Cancel
+          </ion-button>
+          <ion-button color="secondary" size="small"
+            [disabled]="isAddingToThread()"
+            (click)="addToThread()">
+            <ion-icon slot="start" name="add-outline"></ion-icon>
+            {{ isAddingToThread() ? 'Adding…' : 'Add Turn' }}
+          </ion-button>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  }
 
   <!-- ─── Threads (persisted session_tasks) ─── -->
   <ion-card *ngIf="sessionTasks().length > 0" class="ion-margin-top">

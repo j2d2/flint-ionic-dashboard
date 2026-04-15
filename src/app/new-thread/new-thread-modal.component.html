@@ -72,7 +72,7 @@
   <!-- Channel picker — all modes -->
   <ion-item>
     <ion-label>Channel</ion-label>
-    <ion-select [(ngModel)]="channel" interface="popover" (ngModelChange)="onChannelChange()">
+    <ion-select [(ngModel)]="channel" interface="action-sheet" (ngModelChange)="onChannelChange()">
       @for (ch of channels; track ch.id) {
         <ion-select-option [value]="ch.id">{{ ch.name }}</ion-select-option>
       }
@@ -81,7 +81,7 @@
 
   <ion-item>
     <ion-label>Agent Type</ion-label>
-    <ion-select [(ngModel)]="taskType" interface="popover">
+    <ion-select [(ngModel)]="taskType" interface="action-sheet">
       @for (type of taskTypes; track type.value) {
         <ion-select-option [value]="type.value">{{ type.label }}</ion-select-option>
       }
@@ -91,7 +91,7 @@
   @if (wrappers().length) {
     <ion-item>
       <ion-label>Template</ion-label>
-      <ion-select [(ngModel)]="selectedWrapper" interface="popover" placeholder="None"
+      <ion-select [(ngModel)]="selectedWrapper" interface="action-sheet" placeholder="None"
         (ngModelChange)="onWrapperChange()">
         <ion-select-option value="">None</ion-select-option>
         @for (w of wrappers(); track w.name) {

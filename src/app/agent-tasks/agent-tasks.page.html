@@ -69,6 +69,24 @@
     }
   </ion-toolbar>
   }
+  @if (categories().length > 0) {
+  <ion-toolbar class="category-filter-bar">
+    <button
+      class="category-chip"
+      [class.category-chip--active]="categoryFilter() === 'all'"
+      (click)="categoryFilter.set('all')">
+      all ({{ total() }})
+    </button>
+    @for (cat of categories(); track cat.name) {
+    <button
+      class="category-chip"
+      [class.category-chip--active]="categoryFilter() === cat.name"
+      (click)="categoryFilter.set(cat.name)">
+      {{ cat.name }} ({{ cat.count }})
+    </button>
+    }
+  </ion-toolbar>
+  }
 </ion-header>
 
 <ion-popover trigger="quick-add-trigger" triggerAction="click" [dismissOnSelect]="true" size="auto">
@@ -97,6 +115,23 @@
   <ion-refresher slot="fixed" (ionRefresh)="loadTasks($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
+
+  @if (isLoading() && tasks().length === 0) {
+  <div class="tasks-empty-state">
+    <h3>Loading tasks...</h3>
+  </div>
+  }
+
+  @if (!isLoading() && !hasVisibleTasks()) {
+  <div class="tasks-empty-state">
+    <h3>No visible tasks</h3>
+    <p>{{ emptyStateMessage() }}</p>
+    <div class="tasks-empty-actions">
+      <ion-button fill="outline" size="small" (click)="clearAllFilters()">Clear Filters</ion-button>
+      <ion-button size="small" (click)="loadTasks()">Refresh</ion-button>
+    </div>
+  </div>
+  }
 
   <ion-list>
     <ion-item
@@ -154,14 +189,14 @@
       <ion-icon name="add-outline"></ion-icon>
     </ion-fab-button>
     <ion-fab-list side="top">
-      <ion-fab-button color="medium" title="New Chat" (click)="goToChat()">
-        <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
+      <ion-fab-button class="fab-labeled" color="medium" (click)="goToChat()">
+        New Chat <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
       </ion-fab-button>
-      <ion-fab-button color="secondary" title="New Thread" (click)="openNewThread()">
-        <ion-icon name="git-branch-outline"></ion-icon>
+      <ion-fab-button class="fab-labeled" color="secondary" (click)="openNewThread()">
+        New Thread <ion-icon name="git-branch-outline"></ion-icon>
       </ion-fab-button>
-      <ion-fab-button color="primary" title="New Agent Task" (click)="openNewAgentTask()">
-        <ion-icon name="flash-outline"></ion-icon>
+      <ion-fab-button class="fab-labeled" color="primary" (click)="openNewAgentTask()">
+        New Task <ion-icon name="flash-outline"></ion-icon>
       </ion-fab-button>
     </ion-fab-list>
   </ion-fab>

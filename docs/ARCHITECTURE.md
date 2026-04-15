@@ -50,3 +50,54 @@ flint dashboard start|stop|restart|status|logs
 flint dashboard backend start|stop|restart|status|logs
 flint dashboard ionic start|stop|restart|status|logs
 ```
+
+## Triage Runbook
+
+**First move is always process liveness — never read source code first.**
+
+### Step 1 — Check all three processes
+
+```bash
+lsof -ti :18310 && echo "backend OK" || echo "BACKEND DOWN"
+lsof -ti :18320 && echo "angular OK" || echo "ANGULAR DOWN"
+lsof -ti :18765 && echo "flint OK"   || echo "FLINT DOWN"
+```
+
+Or use `flint list` for a unified view including PIDs and health.
+
+### Step 2 — If processes are up but UI shows nothing
+
+```bash
+curl -s "http://localhost:18310/api/tasks?limit=2" | python3 -m json.tool | head -15
+curl -s "http://localhost:18310/api/health"
+```
+
+If `/api/tasks` returns data but Angular shows nothing → check browser console for CORS/proxy errors (`proxy.conf.json` routes `/api` → `:18310`).
+
+### Step 3 — Restart order
+
+Always restart in dependency order: Flint → backend → Angular
+
+```bash
+flint restart                         # if Flint is down
+flint dashboard backend restart       # if backend is down
+flint dashboard ionic restart         # if Angular dev server is down
+```
+
+### Port collision (EADDRINUSE)
+
+```bash
+lsof -ti :PORT | xargs kill -9 2>/dev/null
+```
+
+The `npm run dev` backend script auto-kills its port. For Angular use the line above.
+
+### Common failure patterns
+
+| Symptom | Likely cause | Fix |
+|---------|-------------|-----|
+| UI blank, no console errors | Angular down | `flint dashboard ionic restart` |
+| API 502 in console | Backend down | `flint dashboard backend restart` |
+| API 503 / MCP errors | Flint down | `flint restart` |
+| Tasks load but stale | Flint DB locked | `flint restart`; check `~/.flint/tasks.db` not open elsewhere |
+| WebSocket not connecting | Backend port conflict | kill `:18310`, restart backend |

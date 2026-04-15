@@ -92,12 +92,15 @@ export class NewThreadModalComponent implements OnInit {
   selectedWrapper = '';
 
   get modalTitle(): string {
-    return this.mode() === 'thread' ? 'New Thread' : 'New Agent Task';
+    // Use _mode (private WritableSignal) not mode (public readonly) — Ionic's ModalController
+    // sets componentProps via direct property assignment (instance['mode'] = 'task') which
+    // shadows the public signal reference turning it into a plain string. See class comment.
+    return this._mode() === 'thread' ? 'New Thread' : 'New Agent Task';
   }
 
   get submitLabel(): string {
     if (this.isSubmitting()) return 'Creating…';
-    return this.mode() === 'thread' ? 'Start Thread' : 'Create Task';
+    return this._mode() === 'thread' ? 'Start Thread' : 'Create Task';
   }
 
   private readonly modalController = inject(ModalController);
@@ -215,7 +218,7 @@ export class NewThreadModalComponent implements OnInit {
       .subscribe({
         next: (task: AgentTask) => {
           this.threadStarted.emit(task.id);
-          if (this.mode() === 'thread') {
+          if (this._mode() === 'thread') {
             void this.dismiss({ task });
             void this.router.navigate(['/task', task.id]);
           } else {

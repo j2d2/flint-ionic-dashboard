@@ -10,4 +10,12 @@ export class ThreadService {
   sendMessage(taskId: string, message: string): Observable<{ task_id: string }> {
     return this.http.post<{ task_id: string }>(`/api/tasks/${taskId}/chat`, { message });
   }
+
+  /** Append a turn to an existing thread-builder thread. */
+  addTurn(threadId: string, prompt: string, response: string): Observable<{ turn_id: string; turn_number: number; turn_count: number }> {
+    return this.http.post<{ turn_id: string; turn_number: number; turn_count: number }>(
+      `/api/thread-builder/${threadId}/turn`,
+      { prompt, response },
+    );
+  }
 }

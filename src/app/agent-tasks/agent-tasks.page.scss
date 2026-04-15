@@ -117,6 +117,82 @@
   gap: 0;
 }
 
+.category-filter-bar {
+  --padding-top: 6px;
+  --padding-bottom: 6px;
+  --min-height: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  padding-inline: 12px;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+.category-chip {
+  border: 1px solid var(--ion-color-medium-tint);
+  background: var(--ion-color-light);
+  color: var(--ion-color-medium-shade);
+  border-radius: 14px;
+  padding: 4px 9px;
+  font-size: 11px;
+  white-space: nowrap;
+
+  &--active {
+    border-color: var(--ion-color-primary);
+    color: var(--ion-color-primary);
+    background: rgba(var(--ion-color-primary-rgb), 0.08);
+  }
+}
+
+.tasks-empty-state {
+  margin: 16px 12px;
+  border: 1px dashed var(--ion-color-medium-tint);
+  border-radius: 12px;
+  padding: 14px;
+  text-align: left;
+
+  h3 {
+    margin: 0 0 6px;
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--ion-color-medium-shade);
+  }
+}
+
+.tasks-empty-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+}
+
+// ─── Labeled speed-dial FAB sub-buttons ─────────────
+
+// ::part(native) targets the inner <button> inside ion-fab-button's shadow DOM
+// so we can override the fixed circle dimensions with a pill shape.
+ion-fab-button.fab-labeled {
+  --border-radius: 24px;
+}
+
+ion-fab-button.fab-labeled::part(native) {
+  width: auto;
+  height: 40px;
+  padding-inline: 14px 10px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  gap: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 // ─── Dee's Ideas quick-filter chip ──────────────────
 
 .dee-chip {
