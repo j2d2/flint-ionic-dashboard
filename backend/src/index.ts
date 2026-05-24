@@ -17,6 +17,7 @@ import { authRouter } from './routes/auth';
 import { requireAuth } from './middleware/auth.middleware';
 import { tasksRouter } from './routes/tasks';
 import { approvalsRouter } from './routes/approvals';
+import { proposalsRouter } from './routes/proposals';
 import { threadsRouter } from './routes/threads';
 import { chatRouter } from './routes/chat';
 import { systemRouter } from './routes/system';
@@ -78,6 +79,7 @@ app.use('/api', requireAuth);
 
 app.use('/api/tasks', tasksRouter);
 app.use('/api/approvals', approvalsRouter);
+app.use('/api/proposals', proposalsRouter);
 app.use('/api/threads', threadsRouter);
 app.use('/api/chat', chatRouter);
 app.use('/api/system', systemRouter);

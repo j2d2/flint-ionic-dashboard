@@ -1,0 +1,122 @@
+:host {
+  display: block;
+}
+
+.title-badge {
+  margin-left: 8px;
+  font-size: 0.75rem;
+  vertical-align: middle;
+}
+
+.skeleton-list {
+  padding: 8px 16px;
+}
+
+.error-state,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+  gap: 8px;
+  color: var(--ion-color-medium);
+}
+
+.empty-icon {
+  font-size: 3rem;
+  margin-bottom: 8px;
+  opacity: 0.5;
+}
+
+.empty-sub {
+  font-size: 0.85rem;
+  max-width: 280px;
+  line-height: 1.5;
+}
+
+.group-section {
+  margin: 16px 0;
+}
+
+.group-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 16px 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ion-color-medium);
+
+  ion-icon {
+    font-size: 1rem;
+  }
+
+  .group-name {
+    flex: 1;
+  }
+}
+
+.proposal-card {
+  margin: 0 12px 10px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.card-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.app-chip {
+  font-size: 0.7rem;
+  height: 22px;
+  margin: 0;
+}
+
+.proposal-date {
+  font-size: 0.72rem;
+  color: var(--ion-color-medium);
+}
+
+.proposal-title {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.proposal-description {
+  font-size: 0.87rem;
+  line-height: 1.55;
+  color: var(--ion-color-medium-shade);
+  margin-bottom: 16px;
+  white-space: pre-wrap;
+  max-height: 8rem;
+  overflow: hidden;
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2rem;
+    background: linear-gradient(transparent, var(--ion-card-background, var(--ion-background-color)));
+  }
+}
+
+.action-row {
+  display: flex;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.action-btn {
+  flex: 1;
+}

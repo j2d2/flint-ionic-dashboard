@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import {
@@ -112,6 +113,7 @@ export class AppComponent implements OnInit {
   readonly inFlightTasks = signal<AgentTask[]>([]);
   readonly recentlyDoneTasks = signal<AgentTask[]>([]);
   readonly loadingAccounts = signal(false);
+  readonly proposalsCount = signal(0);
 
   // Accordion open state — all collapsed by default
   forReviewOpen = false;
@@ -122,6 +124,7 @@ export class AppComponent implements OnInit {
   protected readonly inboxState = inject(InboxStateService);
   private readonly channelService = inject(ChannelService);
   private readonly emailService = inject(EmailService);
+  private readonly http = inject(HttpClient);
   private readonly taskService = inject(TaskService);
   private readonly socketService = inject(SocketService);
   private readonly destroyRef = inject(DestroyRef);
@@ -193,6 +196,10 @@ export class AppComponent implements OnInit {
 
   loadSidebarTasks(): void {
     const recency = { order_by: 'updated_at' as const, order_dir: 'desc' as const };
+
+    this.http.get<{ count: number }>('/api/proposals/count')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({ next: ({ count }) => this.proposalsCount.set(count) });
 
     this.taskService.getTasks(0, 25, { review_due: 1, ...recency })
       .subscribe({ next: ({ tasks }) => this.reviewTasks.set(tasks) });

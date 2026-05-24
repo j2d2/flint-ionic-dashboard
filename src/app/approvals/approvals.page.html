@@ -1,0 +1,115 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>
+      Build Proposals
+      @if (totalCount() > 0) {
+        <ion-badge color="warning" class="title-badge">{{ totalCount() }}</ion-badge>
+      }
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="load()" [disabled]="isLoading()">
+        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  @if (isLoading()) {
+    <div class="skeleton-list">
+      @for (i of [1, 2, 3]; track i) {
+        <ion-card>
+          <ion-card-header>
+            <ion-skeleton-text [animated]="true" style="width: 60%; height: 1.2rem;"></ion-skeleton-text>
+            <ion-skeleton-text [animated]="true" style="width: 30%; height: 0.9rem;"></ion-skeleton-text>
+          </ion-card-header>
+          <ion-card-content>
+            <ion-skeleton-text [animated]="true" style="width: 100%; height: 3.5rem;"></ion-skeleton-text>
+          </ion-card-content>
+        </ion-card>
+      }
+    </div>
+  }
+
+  @if (error()) {
+    <div class="error-state">
+      <ion-text color="danger">
+        <p>{{ error() }}</p>
+      </ion-text>
+      <ion-button fill="outline" size="small" (click)="load()">Retry</ion-button>
+    </div>
+  }
+
+  @if (!isLoading() && !error() && totalCount() === 0) {
+    <div class="empty-state">
+      <ion-icon name="layers-outline" class="empty-icon"></ion-icon>
+      <p>No proposals waiting</p>
+      <p class="empty-sub">The planning agents will generate proposals tonight — check back in the morning.</p>
+    </div>
+  }
+
+  @if (!isLoading() && groups().length > 0) {
+    @for (group of groups(); track group.app) {
+      <div class="group-section">
+        <div class="group-header">
+          <ion-icon name="git-branch-outline"></ion-icon>
+          <span class="group-name">{{ group.appLabel }}</span>
+          <ion-badge [color]="appColor(group.app)">{{ group.proposals.length }}</ion-badge>
+        </div>
+
+        @for (proposal of group.proposals; track proposal.id) {
+          <ion-card class="proposal-card">
+            <ion-card-header>
+              <div class="card-header-row">
+                <ion-chip [color]="appColor(group.app)" class="app-chip">
+                  {{ group.appLabel }}
+                </ion-chip>
+                <span class="proposal-date">{{ formatDate(proposal.created_at) }}</span>
+              </div>
+              <ion-card-title class="proposal-title">{{ proposal.title }}</ion-card-title>
+            </ion-card-header>
+
+            <ion-card-content>
+              @if (proposal.description) {
+                <p class="proposal-description">{{ proposal.description }}</p>
+              }
+
+              <div class="action-row">
+                <ion-button
+                  fill="solid"
+                  color="success"
+                  size="default"
+                  class="action-btn"
+                  [disabled]="isActionPending(proposal.id)"
+                  (click)="approve(proposal.id)"
+                >
+                  <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+                  Approve
+                </ion-button>
+
+                <ion-button
+                  fill="outline"
+                  color="medium"
+                  size="default"
+                  class="action-btn"
+                  [disabled]="isActionPending(proposal.id)"
+                  (click)="reject(proposal.id)"
+                >
+                  <ion-icon slot="start" name="close-circle-outline"></ion-icon>
+                  Reject
+                </ion-button>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        }
+      </div>
+    }
+  }
+</ion-content>

@@ -63,6 +63,10 @@ export const routes: Routes = [
         loadComponent: () => import('./daemon/daemon.page').then((m) => m.DaemonPage),
       },
       {
+        path: 'approvals',
+        loadComponent: () => import('./approvals/approvals.page').then((m) => m.ApprovalsPage),
+      },
+      {
         path: '',
         redirectTo: 'dashboard',
         pathMatch: 'full',

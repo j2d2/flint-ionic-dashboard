@@ -84,6 +84,26 @@
 
         <!-- ─── Quick Category Accordions ─── -->
 
+        <!-- Build Proposals — direct link with count badge -->
+        <div class="menu-section">
+          <ion-menu-toggle autoHide="false">
+            <ion-item
+              [routerLink]="['/approvals']"
+              routerDirection="root"
+              routerLinkActive="active-link"
+              button
+              lines="none"
+              class="menu-section__nav-item"
+            >
+              <ion-icon slot="start" name="git-branch-outline" color="warning"></ion-icon>
+              <ion-label>Build Proposals</ion-label>
+              @if (proposalsCount() > 0) {
+                <ion-badge slot="end" color="warning">{{ proposalsCount() }}</ion-badge>
+              }
+            </ion-item>
+          </ion-menu-toggle>
+        </div>
+
         <!-- For Review -->
         <div class="menu-section menu-accordion">
           <button class="menu-accordion__header" (click)="forReviewOpen = !forReviewOpen">
